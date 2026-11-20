@@ -49,6 +49,8 @@ def pausas(x, sr):
 
 def crossfade(a, b, sr):
     k = int(sr * CROSSFADE / 1000)
+    if len(a) < k or len(b) < k:          # trozo más corto que el fundido: unir sin fundir
+        return np.concatenate([a, b])
     r = np.linspace(0, 1, k)
     return np.concatenate([a[:-k], a[-k:] * (1 - r) + b[:k] * r, b[k:]])
 

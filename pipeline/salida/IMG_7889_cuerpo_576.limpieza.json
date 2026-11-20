@@ -1,0 +1,153 @@
+{
+ "entrada": "/tmp/claude-0/charlie/cuerpo_audio.wav",
+ "salida": "/tmp/claude-0/charlie/cuerpo_audio_limpio.wav",
+ "nivel_voz_dbfs": -23.5,
+ "piso_dbfs": -51.6,
+ "paso_alto_hz": 85,
+ "pops": [
+  {
+   "ini": 8.675,
+   "fin": 8.715
+  },
+  {
+   "ini": 9.345,
+   "fin": 9.405
+  },
+  {
+   "ini": 9.385,
+   "fin": 9.435
+  },
+  {
+   "ini": 9.475,
+   "fin": 9.515
+  },
+  {
+   "ini": 13.995,
+   "fin": 14.035
+  },
+  {
+   "ini": 15.485,
+   "fin": 15.535
+  },
+  {
+   "ini": 17.885,
+   "fin": 17.925
+  },
+  {
+   "ini": 17.905,
+   "fin": 17.955
+  },
+  {
+   "ini": 21.235,
+   "fin": 21.275
+  },
+  {
+   "ini": 22.895,
+   "fin": 22.945
+  },
+  {
+   "ini": 27.835,
+   "fin": 27.875
+  },
+  {
+   "ini": 29.045,
+   "fin": 29.105
+  },
+  {
+   "ini": 31.455,
+   "fin": 31.495
+  }
+ ],
+ "respiraciones": [
+  {
+   "ini": 1.814,
+   "fin": 2.183,
+   "pico_dbfs": -27.2,
+   "entre": [
+    "regreso.",
+    "Después"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 5.86,
+   "fin": 6.197,
+   "pico_dbfs": -37.0,
+   "entre": [
+    "artificial,",
+    "por"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 7.594,
+   "fin": 8.221,
+   "pico_dbfs": -21.1,
+   "entre": [
+    "vuelta.",
+    "A"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 13.15,
+   "fin": 13.6,
+   "pico_dbfs": -25.1,
+   "entre": [
+    "Latinoamérica.",
+    "En"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 16.233,
+   "fin": 16.57,
+   "pico_dbfs": -21.9,
+   "entre": [
+    "impactado",
+    "y"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 19.172,
+   "fin": 19.3,
+   "pico_dbfs": -28.6,
+   "entre": [
+    "esto",
+    "alrededor"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 21.901,
+   "fin": 22.415,
+   "pico_dbfs": -16.6,
+   "entre": [
+    "Latinoamérica.",
+    "Y"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 22.447,
+   "fin": 22.913,
+   "pico_dbfs": -16.1,
+   "entre": [
+    "hoy",
+    "estamos"
+   ],
+   "gan_db": -12.0
+  },
+  {
+   "ini": 27.12,
+   "fin": 27.473,
+   "pico_dbfs": -25.6,
+   "entre": [
+    "artificial.",
+    "Si"
+   ],
+   "gan_db": -12.0
+  }
+ ]
+}

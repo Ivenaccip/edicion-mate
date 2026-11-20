@@ -72,3 +72,24 @@ Fotograma: `docs/img/IMG_7889_cuerpo_576_frame.jpg`.
 3. **Encuadre 9:16**: el raw rotado queda 2160x4096 (≈0.53), el short es 0.5625. Falta decidir
    recorte o barras. Pendiente de la spec visual.
 4. **Audio**: el preview es mono; el render final debe conservar estéreo si el raw lo trae.
+
+## `limpiar_audio.py`: respiraciones y pops
+El usuario oyó "soplidos" en IMG_7889. Medido: 9 respiraciones entre frases, varias a −10/−16 dBFS
+con la voz en −23.5 dBFS promedio (casi al mismo nivel), y 13 pops breves de graves en consonantes.
+
+Tres capas, todas suaves:
+1. Paso-alto global 85 Hz (quita retumbe de aire, no toca la voz).
+2. De-pop: en cada ráfaga donde los graves < 150 Hz dominan, se mezcla ~30 ms de una versión
+   filtrada a 220 Hz. La consonante se conserva, el golpe desaparece.
+3. Respiraciones: en cada hueco entre palabras (según AssemblyAI) con energía > piso + 6 dB, se baja
+   −12 dB con fundidos de 30 ms. Nunca se silencia: a −12 dB suena natural, a silencio suena a corte.
+
+Resultado en IMG_7889: picos de respiración de −10.3 → −15.9 dBFS (21.9 s) y −18.1 → −30.2 (27.1 s).
+Las que bajaron poco (13.15 s: −0.7 dB) tienen el pico pegado al borde de la palabra, dentro del
+fundido: ahí AssemblyAI pone el fin de palabra antes de tiempo y el detector no se atreve a tocarlo.
+Mejora pendiente: localizar el núcleo de la respiración por energía dentro del hueco, no usar el
+hueco entero.
+
+```bash
+python pipeline/limpiar_audio.py cuerpo_audio.wav cuerpo.palabras.json limpio.wav --video cuerpo.mp4 cuerpo_limpio.mp4
+```

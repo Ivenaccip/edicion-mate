@@ -1,5 +1,9 @@
 # Handoff — sesión de recursos visuales de pantalla verde
 
+> **Estado (20 nov 2026, noche):** puntos 1–4 hechos y documentados en `docs/02-capa-visual.md`
+> (comparación A/B/C, WebM con alfa verificado en Chrome, 3 fondos de prueba, composición base en
+> `composicion/`). Pendiente: spec visual y assets del usuario, captions, máscara fija del escritorio.
+
 ## Contexto en 5 líneas
 Proyecto `edicion-mate`: pipeline de edición automática de shorts **del usuario** (graba en vertical 4K
 con celular sobre pantalla verde). Charlie Sebastian fue solo el ejemplo de donde salió el diseño.

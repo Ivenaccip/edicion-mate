@@ -1,59 +1,101 @@
 <!doctype html>
-<html lang="en" data-resolution="portrait">
+<html lang="es" data-resolution="portrait">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <!-- GSAP vendorizado: el entorno de render no tiene acceso a CDNs y el render debe ser determinista -->
+    <script src="./vendor/gsap.min.js"></script>
     <style>
-      /* Placeholders: replace all three with the film's own palette and display face. */
+      /* ---------- Variables de look (provisionales hasta recibir la spec visual y los assets de marca) ---------- */
       :root {
-        --ground: #000;
+        --ground: #14161f;            /* color plano de marca (provisional) */
         --ink: #ffffff;
-        --font-display: sans-serif;
+        --font-display: "Montserrat", "Poppins", "DejaVu Sans", sans-serif;
+
+        /* Zona reservada para captions. En el TikTok de referencia el bloque de 2-3 palabras va
+           centrado a ~55 % de la altura (y ≈ 1060 px en 1080x1920), encima del pecho, no en el tercio
+           inferior. Se deja parametrizado: cambiar --captions-y para moverlo. */
+        --captions-y: 1060px;
+        --captions-alto: 200px;
+        --captions-ancho: 960px;
+
+        /* Zona para logo: esquina superior izquierda, con margen seguro de 72 px. */
+        --logo-x: 72px;
+        --logo-y: 120px;
+        --logo-ancho: 260px;
+        --logo-alto: 120px;
+
+        /* Tarjeta de fondo detrás de la persona (en la referencia: b-roll cálido con esquinas
+           redondeadas, del ~70 % de la altura hacia abajo). 0 = oculta. */
+        --tarjeta-y: 1350px;
+        --tarjeta-radio: 48px;
+        --tarjeta-opacidad: 1;
+
+        /* Guías de maquetación (solo para revisar la composición; 0 en el render final). */
+        --guias: 0;
       }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--ground); }
+      #root { position: relative; width: 1080px; height: 1920px; font-family: var(--font-display); }
+      .capa { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+
+      /* Capa 0: fondo. Imagen o video a pantalla completa (object-fit cover). */
+      #fondo { z-index: 0; object-fit: cover; }
+
+      /* Capa 1: tarjeta opcional con esquinas redondeadas detrás de la persona. */
+      #tarjeta {
+        z-index: 1; position: absolute; left: 0; right: 0; top: var(--tarjeta-y); bottom: 0;
+        border-radius: var(--tarjeta-radio) var(--tarjeta-radio) 0 0; overflow: hidden;
+        opacity: var(--tarjeta-opacidad);
       }
-      html,
-      body {
-        margin: 0;
-        width: 1080px;
-        height: 1920px;
-        overflow: hidden;
-        background: var(--ground);
+      /* La imagen va como background-image anclada al canvas (background-attachment no hace falta: el
+         contenedor arranca en --tarjeta-y y la imagen se desplaza con background-position). */
+      #tarjeta { background-image: url("./assets/fondo_broll.png"); background-size: 1080px 1920px; background-position: 0 calc(-1 * var(--tarjeta-y)); }
+
+      /* Capa 2: persona con alfa (WebM VP9 yuva420p, salida de quitar_verde.py). */
+      #persona { z-index: 2; object-fit: cover; }
+
+      /* Capa 3: zona reservada para captions (el contenido lo pondrá el paso de captions). */
+      #zona-captions {
+        z-index: 3; position: absolute; left: calc((1080px - var(--captions-ancho)) / 2);
+        top: calc(var(--captions-y) - var(--captions-alto) / 2);
+        width: var(--captions-ancho); height: var(--captions-alto);
       }
-      #root {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: var(--font-display);
-      }
-      #title {
-        color: var(--ink);
-        font-size: 72px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
-      }
+      /* Capa 4: zona para logo. */
+      #zona-logo { z-index: 4; position: absolute; left: var(--logo-x); top: var(--logo-y); width: var(--logo-ancho); height: var(--logo-alto); }
+
+      /* Guías: rectángulos punteados y etiquetas. Opacidad controlada por --guias. */
+      .guia { opacity: var(--guias); border: 4px dashed rgba(255, 220, 0, 0.9); color: #ffdc00; font-size: 34px; font-weight: 700; padding: 8px 14px; }
+      #zona-captions.guia { border-color: rgba(0, 200, 255, 0.9); color: #00c8ff; }
+      #guia-margen { z-index: 5; position: absolute; inset: 72px; border: 2px dashed rgba(255, 255, 255, 0.5); opacity: var(--guias); pointer-events: none; }
+      #guia-tercios { z-index: 5; position: absolute; inset: 0; opacity: var(--guias); pointer-events: none;
+        background: linear-gradient(to bottom, transparent 0, transparent 639px, rgba(255,255,255,.35) 639px, rgba(255,255,255,.35) 641px, transparent 641px, transparent 1279px, rgba(255,255,255,.35) 1279px, rgba(255,255,255,.35) 1281px, transparent 1281px); }
     </style>
   </head>
   <body>
-    <div
-      id="root"
-      data-composition-id="main"
-      data-start="0"
-      data-duration="10"
-      data-width="1080"
-      data-height="1920"
-    >
-      <h1 id="title" class="clip" data-start="0" data-duration="10" data-track-index="0">Title</h1>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="3" data-width="1080" data-height="1920">
+      <!-- Capa 0: fondo (imagen fija de prueba; puede ser <video muted> de b-roll) -->
+      <img id="fondo" class="clip capa" src="./assets/fondo_degradado.png" data-start="0" data-duration="3" data-track-index="0" alt="" />
+
+      <!-- Capa 1: tarjeta con b-roll desenfocado detrás de la persona -->
+      <div id="tarjeta" class="clip" data-start="0" data-duration="3" data-track-index="1"></div>
+
+      <!-- Capa 2: persona keyeada con alfa; el audio de voz va aparte para poder reemplazarlo -->
+      <video id="persona" class="clip capa" src="./assets/persona_3s_chromakey.webm" data-start="0" data-duration="3" data-track-index="2" muted playsinline></video>
+      <audio id="voz" src="./assets/voz_3s.m4a" data-start="0" data-duration="3" data-track-index="3"></audio>
+
+      <!-- Capa 3 y 4: zonas reservadas -->
+      <div id="zona-captions" class="clip guia" data-start="0" data-duration="3" data-track-index="4">zona captions (2-3 palabras, palabra activa resaltada)</div>
+      <div id="zona-logo" class="clip guia" data-start="0" data-duration="3" data-track-index="5">logo</div>
+      <div id="guia-margen"></div>
+      <div id="guia-tercios"></div>
     </div>
     <script>
+      window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      // Example: tl.fromTo("#title", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 0);
+      // Entrada: el fondo aparece primero, la persona sube 24 px y aparece. Todo determinista y finito.
+      // El fondo y la tarjeta ya están en el frame 0 (miniatura en redes); solo la persona entra.
+      tl.fromTo("#persona", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0);
       window.__timelines["main"] = tl;
       tl.seek(0);
     </script>

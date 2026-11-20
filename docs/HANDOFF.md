@@ -1,6 +1,7 @@
 # Handoff — estado general (actualizado 20 nov 2026, noche)
 
-> Sesión paralela de **capa visual / pantalla verde**: ver `docs/HANDOFF-pantalla-verde.md`.
+> Sesión paralela de **capa visual / pantalla verde**: ver `docs/HANDOFF-pantalla-verde.md` y sus
+> resultados en `docs/02-capa-visual.md` (llave híbrida chromakey+RVM, WebM con alfa, composición Hyperframes).
 > Esta sesión (cortes + audio) y aquella no se pisan: una produce `cuerpo.mp4`, la otra lo viste.
 
 ## Qué es este proyecto

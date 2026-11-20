@@ -1,0 +1,88 @@
+{
+ "entrada": "/tmp/claude-0/muestra2/nota2.wav",
+ "salida": "prototipos/editor-pausas/salida/nota2_editada.wav",
+ "sr": 44100,
+ "nivel_voz_dbfs": -17.4,
+ "duracion_original_s": 15.354,
+ "duracion_editada_s": 9.249,
+ "quitado_s": 6.06,
+ "pausas_encontradas": 6,
+ "pausas_acortadas": 4,
+ "reglas": {
+  "UMBRAL_DB": -35,
+  "MIN_PAUSA": 120,
+  "PAUSA_MAX": 450,
+  "PAUSA_OBJETIVO": 250,
+  "CROSSFADE": 15
+ },
+ "edl": [
+  {
+   "pausa": [
+    0.0,
+    2.54
+   ],
+   "dur_ms": 2540,
+   "accion": "acortar a 150 ms",
+   "quitar": [
+    0.0,
+    2.39
+   ],
+   "quitado_ms": 2390
+  },
+  {
+   "pausa": [
+    3.85,
+    5.87
+   ],
+   "dur_ms": 2020,
+   "accion": "acortar a 250 ms",
+   "quitar": [
+    3.975,
+    5.745
+   ],
+   "quitado_ms": 1770
+  },
+  {
+   "pausa": [
+    8.99,
+    10.92
+   ],
+   "dur_ms": 1930,
+   "accion": "acortar a 250 ms",
+   "quitar": [
+    9.115,
+    10.795
+   ],
+   "quitado_ms": 1680
+  },
+  {
+   "pausa": [
+    11.2,
+    11.36
+   ],
+   "dur_ms": 160,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    14.52,
+    14.99
+   ],
+   "dur_ms": 470,
+   "accion": "acortar a 250 ms",
+   "quitar": [
+    14.645,
+    14.865
+   ],
+   "quitado_ms": 220
+  },
+  {
+   "pausa": [
+    15.01,
+    15.29
+   ],
+   "dur_ms": 280,
+   "accion": "se deja"
+  }
+ ]
+}

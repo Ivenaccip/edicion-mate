@@ -167,3 +167,8 @@ Un **crossfade de 10 a 20 ms** en cada corte (`acrossfade` de FFmpeg) elimina lo
 
 ### Validación de la capa B (prototipo, nov 2026)
 Ver `prototipos/essentia-cortes/README.md`. Resumen: DiscontinuityDetector acierta exacto en cortes sucios y huecos sin falsos en el limpio. Hallazgo clave: un corte en medio de una palabra puede ser físicamente continuo, así que la capa B incluye además la métrica "voz a ambos lados del corte". ClickDetector y GapsDetector requieren calibración con voz real.
+
+### Validación del editor de pausas y del principio "la señal manda" (nov 2026)
+Ver `prototipos/editor-pausas/README.md`. Con una nota de voz con pausas largas a propósito, el editor por energía
+las encontró y acortó, el auditor no marcó nada en los empalmes, y Whisper asignó esas pausas de 2 s a palabras vecinas
+(92–93 % de la "palabra" era silencio). Confirmado: dónde cortar se decide con la señal, no con el transcript.

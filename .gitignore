@@ -3,3 +3,10 @@ __pycache__/
 *.wav
 *.mp4
 *.mov
+*.webm
+*.onnx
+*.pth
+composicion/node_modules/
+composicion/assets/
+composicion/.hyperframes/
+composicion/out/

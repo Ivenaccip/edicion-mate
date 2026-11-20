@@ -1,0 +1,32 @@
+{
+ "entrada": "/tmp/claude-0/charlie/IMG_7889.MP4",
+ "edl": "/tmp/claude-0/charlie/IMG_7889.edl.json",
+ "salida": "/tmp/claude-0/charlie/IMG_7889_cuerpo_576.mp4",
+ "fps": 29.97002997002997,
+ "modo": "preview",
+ "rotar": "ccw",
+ "duracion_original_s": 44.611,
+ "tramos_quitados": [
+  [
+   0.0,
+   8.765
+  ],
+  [
+   42.05,
+   44.6
+  ]
+ ],
+ "tramos_conservados": [
+  [
+   8.775433,
+   42.042
+  ]
+ ],
+ "empalmes_en_salida_s": [],
+ "desfase_redondeo_max_ms": 11.23,
+ "duracion_esperada_s": 33.267,
+ "duracion_audio_cortado_s": 33.267,
+ "duracion_salida_s": 33.266,
+ "diferencia_frames": -0.02,
+ "crossfade_ms": 15
+}

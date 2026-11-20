@@ -1,0 +1,49 @@
+{
+ "entrada": "/tmp/claude-0/charlie/IMG_7889.wav",
+ "salida": "/tmp/claude-0/charlie/IMG_7889_audio_editado.wav",
+ "sr": 44100,
+ "nivel_voz_dbfs": -21.4,
+ "duracion_original_s": 44.608,
+ "duracion_editada_s": 33.293,
+ "quitado_s": 11.315,
+ "pausas_encontradas": 7,
+ "pausas_acortadas": 2,
+ "reglas": {
+  "UMBRAL_DB": -35,
+  "MIN_PAUSA": 120,
+  "PAUSA_MAX": 450,
+  "PAUSA_OBJETIVO": 250,
+  "CROSSFADE": 15
+ },
+ "edl": [
+  {
+   "pausa": [
+    0.0,
+    8.765
+   ],
+   "dur_ms": 8765,
+   "accion": "quitar retoma (primer intento fallido hasta 'ok.')",
+   "quitar": [
+    0.0,
+    8.765
+   ],
+   "quitado_ms": 8765,
+   "antes": "",
+   "despues": "Y"
+  },
+  {
+   "pausa": [
+    41.9,
+    44.6
+   ],
+   "dur_ms": 2700,
+   "accion": "acortar a 150 ms",
+   "quitar": [
+    42.05,
+    44.6
+   ],
+   "quitado_ms": 2550
+  }
+ ],
+ "nota": "EDL combinado: retoma inicial quitada (decisión editorial por transcript) + pausas acortadas (por señal)"
+}

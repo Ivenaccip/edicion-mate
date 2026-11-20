@@ -104,8 +104,18 @@ viendo el frame), ninguna palabra truncada en el diff de re-transcripción, cero
 3. Escribir `pipeline/cortar_video.py` (paso 1) y validarlo con las tres verificaciones.
 4. Entregar al usuario el video editado y el EDL juntos, no solo la descripción.
 
+## Hecho después del handoff (misma sesión, 20 nov tarde-noche)
+- `pipeline/cortar_video.py` validado con video sintético (frame-exacto) y con el primer **video real**
+  (IMG_7889.MP4, 4K vertical): ver `pipeline/README.md`. Soporta `--rotar` y escala por lado corto.
+- AssemblyAI detecta muletillas en habla real ("eh"). Prueba de disfluencies cerrada.
+- Hallazgo: el raw real traía una **retoma** (intento fallido + reinicio). Se quitó usando el transcript.
+  El detector de retomas pasa a ser parte del paso 2.
+- Hosts añadidos al entorno: drive.google.com, drive.usercontent.google.com (descarga directa de Drive).
+
 ## Pendientes del lado del usuario
 Nuevos:
+- Confirmar si IMG_7889 es un raw real de Charlie (define si las retomas son parte normal del flujo).
+- Decidir encuadre 9:16 para raws 4096x2160 rotados (recorte vs barras).
 - **Video corto de prueba** (20–30 s, celular, con pausas largas a propósito como la nota 2). Desbloquea
   el paso 1.
 - **Audio con muletillas reales** ("eh", "este", "o sea") para cerrar la prueba de `disfluencies`.

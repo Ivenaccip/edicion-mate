@@ -13,14 +13,16 @@ Leer en este orden: `docs/00-analisis-y-fases.md`, `docs/01-decisiones-tecnicas.
 - Capa B del auditor: **Essentia** (DiscontinuityDetector principal) + métrica propia "voz a ambos
   lados del corte". Validada con voz real: cero falsos positivos, acierto exacto en cortes sucios.
 - Transcripción: backends intercambiables en `pipeline/transcribir.py` (`whisper` local y
-  `assemblyai` API). La intención es usar **AssemblyAI** en producción.
+  `assemblyai` API). **AssemblyAI validado** (nov 2026): respeta los bordes de palabra y reporta las
+  pausas largas como huecos; Whisper small las estira dentro de las palabras. Se usa AssemblyAI en
+  producción. La regla "la señal decide dónde cortar" se mantiene (error de borde ±150 ms).
 
 ## Qué hay en el repo
 | Ruta | Qué es | Estado |
 |---|---|---|
 | `prototipos/essentia-cortes/` | Prototipo del auditor de señal + README con resultados | Validado |
 | `prototipos/editor-pausas/` | Editor mínimo por energía: encuentra pausas, acorta, EDL JSON | Validado |
-| `pipeline/transcribir.py` | Transcriptor con backends whisper / assemblyai | whisper OK, assemblyai sin probar |
+| `pipeline/transcribir.py` | Transcriptor con backends whisper / assemblyai | Ambos validados; resultados en `prototipos/editor-pausas/README.md` |
 
 ## Estado del entorno de nube `edicion-mate`
 - Hosts permitidos: huggingface.co y sus CDN, api.assemblyai.com.

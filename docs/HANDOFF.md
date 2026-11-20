@@ -55,7 +55,7 @@ Formato del EDL actual (lo produce `editor_pausas.py`):
 Objetivo del plan original: `ingest` → `transcribe` → `plan` → `render`, un video, un comando.
 Con lo validado, el orden realista es:
 
-### Paso 1. `pipeline/cortar_video.py`: aplicar el EDL al video (lo primero)
+### Paso 1. `pipeline/cortar_video.py`: aplicar el EDL al video — **HECHO y validado (ver `pipeline/README.md`)**
 - Entrada: `raw.mp4` + `raw.edl.json`. Salida: `cuerpo.mp4` (solo cortes, sin captions).
 - Convertir "quitar" en "conservar" (complemento de los tramos quitados sobre `[0, duración]`).
 - **Redondear cada borde al frame** (a 30 fps, múltiplos de 33.33 ms) y cortar el audio con los
@@ -88,7 +88,7 @@ Con lo validado, el orden realista es:
 Con un video de prueba del usuario: el corte del video cae en el tiempo que dice el EDL (comprobable
 viendo el frame), ninguna palabra truncada en el diff de re-transcripción, cero marcas del auditor.
 
-## Primera tarea de la próxima sesión
+## Primera tarea de la próxima sesión (actualizado: el paso 1 ya está hecho; seguir con el paso 2)
 1. Preparar entorno (contenedor nuevo cada vez):
    ```bash
    apt-get update -q && apt-get install -y -q espeak-ng

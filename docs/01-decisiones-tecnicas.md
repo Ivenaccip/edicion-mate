@@ -115,3 +115,52 @@ Cada pendiente lleva **timestamp, criterio, evidencia verificable y acción**. E
 
 ## 4. Higgsfield y descarga de videos
 Sin rol de Higgsfield en esta versión. Para descargar videos públicos: `yt-dlp` desde la terminal cubre YouTube, TikTok e Instagram sin navegador. La extensión de Chrome (Claude in Chrome) queda para páginas que requieran sesión iniciada.
+
+---
+
+## 5. Revisión por señal de audio (no por transcript)
+
+Decisión: Hyperframes confirmado como motor de composición.
+
+### Tres caminos para que "la IA escuche"
+| Camino | Qué es | Fiabilidad | Costo |
+|---|---|---|---|
+| **A. Modelo de audio nativo** | Se le pasa el WAV/MP3 directo, sin transcript | Media. Los papers (LISTEN 2025) muestran que tienden a transcribir internamente y razonar sobre el texto; Pro > Flash | Tokens por segundo de audio |
+| **B. Detectores de señal (DSP)** | Librerías que miden discontinuidades en la onda: saltos de amplitud, clics, flujo espectral, gaps | Alta y determinista | Casi cero, corre en CPU |
+| **C. Espectrograma → modelo de visión** | Convertir audio a imagen y que Claude la "vea" | Baja. Benchmark nov 2025: los VLM apenas superan el azar leyendo espectrogramas | Bajo |
+
+### Camino A: modelos que aceptan audio crudo
+- **Gemini** (File API, acepta mp3/wav/mp4). Usar la variante Pro, no Flash.
+- **OpenAI gpt-4o-audio** (audio como base64).
+- **Qwen3-Omni-30B-A3B** (Apache 2.0, open weights; rendimiento de audio comparable a Gemini 2.5 Pro según su paper; existe variante Captioner que describe eventos sonoros).
+- **Audio Flamingo 3** (NVIDIA, abierto, hasta 10 min de audio).
+- **Claude**: sin entrada de audio nativa confirmada. El auditor en Claude Code llama a uno de los anteriores como herramienta.
+
+Truco para que de verdad escuchen: no pasar el video entero. Pasar **ventanas de 1.5 s antes y después de cada corte** y preguntar solo por discontinuidad, palabra truncada o cambio brusco de tono. Con audio corto y pregunta cerrada, el modelo no puede refugiarse en el transcript.
+
+### Camino B: librerías de detección en la señal
+- **Essentia (MTG)**: `DiscontinuityDetector`, `ClickDetector`, `GapsDetector`, `SaturationDetector`. La más completa; es una librería de verdad, con bindings Python.
+- **declick**: detecta clics, pops y dropouts cortos en WAV con heurísticas DSP, no modifica el audio.
+- **audio-discontinuity-finder**: combina salto de onda, tasa de cruces por cero y flujo espectral para encontrar puntos de edición. Es una app Flask, pero el método es copiable con librosa.
+- **librosa**: `onset_strength`, `spectral_flux`, RMS por frame. Base para construir un "splice score" propio.
+- **FFmpeg**: `astats`, `silencedetect`, `adeclick`.
+
+### Ventaja que tenemos y nadie más: sabemos dónde están los cortes
+El EDL dice exactamente en qué milisegundo se cortó. No hay que buscar artefactos en todo el video; se mide en cada corte:
+```
+splice_score(t_corte) =
+    |RMS(t-50ms) - RMS(t+50ms)|          # salto de volumen
+  + flujo_espectral(t)                   # cambio de timbre
+  + discontinuidad_de_onda(t)            # clic
+  + (1 si VAD dice "voz" en ambos lados) # se cortó en medio de habla
+```
+Un corte con score alto es un pendiente con evidencia numérica y timestamp.
+
+### Prevención antes que detección
+Un **crossfade de 10 a 20 ms** en cada corte (`acrossfade` de FFmpeg) elimina los clics de origen. El detector queda para lo que el crossfade no arregla: palabras truncadas y cambios de tono.
+
+### Flujo del auditor de audio
+1. Capa B mide `splice_score` en cada corte del EDL y corre `silencedetect` y `loudnorm`. Salida: lista de timestamps sospechosos.
+2. Capa A recibe solo las ventanas sospechosas y da segunda opinión con pregunta cerrada.
+3. Diff de re-transcripción contra transcript esperado para palabras faltantes.
+4. Todo lo anterior se vuelca a `pendientes.md` con timestamp y evidencia.

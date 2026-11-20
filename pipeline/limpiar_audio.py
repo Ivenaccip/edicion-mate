@@ -9,9 +9,12 @@ Tres capas, todas suaves y reversibles (los parámetros están arriba):
   1. Filtro paso-alto global a 85 Hz: quita el retumbe de aire sin tocar la voz.
   2. De-pop: en cada ráfaga de graves (<150 Hz dominando) dentro de una palabra, se mezcla
      durante ~30 ms una versión filtrada a 220 Hz. La consonante se oye, el golpe no.
-  3. Respiraciones: en cada hueco entre palabras con energía claramente por encima del piso
-     de ruido, se baja el volumen RESP_DB (−12 dB) con fundidos de 30 ms. No se silencia:
-     una respiración a −12 dB suena natural; a −inf suena a corte.
+  3. Respiraciones: dentro de cada hueco entre palabras (AssemblyAI, con margen) se clasifica
+     cada frame de 10 ms por la señal: VOZ = tiene armónicos (planitud espectral baja);
+     RESPIRACIÓN = ruido sin tono (planitud alta o muchos cruces por cero) por encima del
+     piso, y a >= 60 ms de cualquier frame de voz. Solo se atenúa la respiración, RESP_DB
+     (−12 dB) con fundidos de 20 ms. Así un error de ±170 ms en los tiempos por palabra no
+     hace que se baje el arranque de la palabra siguiente (pasó en la v1).
 Escribe <salida>.limpieza.json con cada intervención.
 """
 import sys, json, argparse, subprocess
@@ -21,7 +24,9 @@ from scipy.signal import butter, sosfilt, sosfiltfilt
 
 HP_GLOBAL_HZ = 85
 POP_HP_HZ = 220; POP_RATIO = 0.7; POP_MARGEN_MS = 15
-RESP_DB = -12.0; RESP_MIN_MS = 80; RESP_SOBRE_PISO_DB = 6; RESP_FADE_MS = 30; RESP_HUECO_MIN_MS = 120
+RESP_DB = -12.0; RESP_MIN_MS = 60; RESP_SOBRE_PISO_DB = 4; RESP_FADE_MS = 20; RESP_HUECO_MIN_MS = 100
+VOZ_PLANITUD_MAX = 0.06; RESP_PLANITUD_MIN = 0.10; RESP_ZCR_MIN = 0.12; DIST_VOZ_MS = 60; HUECO_MARGEN_MS = 200
+RESP_EXT_MS = 40   # extender la zona atenuada a cada lado (sigue a >= 20 ms de la voz) para que el fundido no se coma el núcleo
 
 def rampa_mask(n_total, intervalos, fade):
     """Máscara 0..1 que vale 1 dentro de los intervalos (en muestras) con fundidos de `fade` muestras."""
@@ -65,14 +70,34 @@ def main():
     mp = rampa_mask(len(y), pops, int(sr*0.005))
     y = y * (1 - mp) + y_pop * mp
 
-    # 3) respiraciones: huecos entre palabras con energía sobre el piso
-    resp = []
+    # 3) respiraciones: clasificar frames por la señal dentro de los huecos entre palabras
+    plan = np.zeros(nf); zcr = np.zeros(nf); win = np.hanning(n)
+    for i in range(nf):
+        s_ = x[i*n:(i+1)*n]; spec = np.abs(np.fft.rfft(s_ * win)) + 1e-9
+        plan[i] = np.exp(np.mean(np.log(spec))) / np.mean(spec)
+        zcr[i] = np.mean(np.abs(np.diff(np.sign(s_)))) / 2
+    voz = (plan < VOZ_PLANITUD_MAX) & (db > nivel_voz - 20)
+    ruido = ((plan > RESP_PLANITUD_MIN) | (zcr > RESP_ZCR_MIN)) & (db > piso + RESP_SOBRE_PISO_DB)
+    dv = int(DIST_VOZ_MS / 10)
+    lejos_de_voz = np.array([not voz[max(0, i-dv):i+dv+1].any() for i in range(nf)])
+    en_hueco = np.zeros(nf, dtype=bool); m = int(HUECO_MARGEN_MS / 10)
     for p, q in zip(w, w[1:]):
-        g0, g1 = p["fin"], q["ini"]
-        if (g1 - g0) * 1000 < RESP_HUECO_MIN_MS: continue
-        seg = db[int(g0*100):int(g1*100)]
-        if (seg > piso + RESP_SOBRE_PISO_DB).sum() * 10 >= RESP_MIN_MS:
-            resp.append((int(g0*sr), int(g1*sr), float(seg.max()), p["w"], q["w"]))
+        if (q["ini"] - p["fin"]) * 1000 >= RESP_HUECO_MIN_MS:
+            en_hueco[max(0, int(p["fin"]*100) - m):int(q["ini"]*100) + m] = True
+    cand = ruido & lejos_de_voz & en_hueco
+    resp, i = [], 0
+    while i < nf:
+        if cand[i]:
+            j = i
+            while j < nf and cand[j]: j += 1
+            if (j - i) * 10 >= RESP_MIN_MS:
+                t0, t1 = i / 100, j / 100
+                p = next((p["w"] for p in reversed(w) if p["fin"] <= t0 + 0.2), "")
+                q = next((q["w"] for q in w if q["ini"] >= t1 - 0.2), "")
+                ext = int(sr * RESP_EXT_MS / 1000)
+                resp.append((max(0, i * n - ext), min(len(x), j * n + ext), float(db[i:j].max()), p, q))
+            i = j
+        else: i += 1
     mr = rampa_mask(len(y), [(r[0], r[1]) for r in resp], int(sr*RESP_FADE_MS/1000))
     gan = 10 ** (a.resp_db / 20)
     y = y * (1 - mr * (1 - gan))

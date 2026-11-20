@@ -39,6 +39,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("audio"); ap.add_argument("palabras"); ap.add_argument("salida")
     ap.add_argument("--video", nargs=2, metavar=("IN", "OUT"), help="remuxear el audio limpio en este video")
+    ap.add_argument("--resp-db", type=float, default=RESP_DB, help="atenuación de respiraciones en dB (por defecto -12)")
     a = ap.parse_args()
     x, sr = sf.read(a.audio, dtype="float32")
     if x.ndim > 1: x = x.mean(axis=1)
@@ -73,16 +74,16 @@ def main():
         if (seg > piso + RESP_SOBRE_PISO_DB).sum() * 10 >= RESP_MIN_MS:
             resp.append((int(g0*sr), int(g1*sr), float(seg.max()), p["w"], q["w"]))
     mr = rampa_mask(len(y), [(r[0], r[1]) for r in resp], int(sr*RESP_FADE_MS/1000))
-    gan = 10 ** (RESP_DB / 20)
+    gan = 10 ** (a.resp_db / 20)
     y = y * (1 - mr * (1 - gan))
 
     sf.write(a.salida, y, sr)
     rep = {"entrada": a.audio, "salida": a.salida, "nivel_voz_dbfs": round(float(nivel_voz),1), "piso_dbfs": round(float(piso),1),
            "paso_alto_hz": HP_GLOBAL_HZ,
            "pops": [{"ini": round(p0/sr,3), "fin": round(p1/sr,3)} for p0, p1 in pops],
-           "respiraciones": [{"ini": round(r[0]/sr,3), "fin": round(r[1]/sr,3), "pico_dbfs": round(r[2],1), "entre": [r[3], r[4]], "gan_db": RESP_DB} for r in resp]}
+           "respiraciones": [{"ini": round(r[0]/sr,3), "fin": round(r[1]/sr,3), "pico_dbfs": round(r[2],1), "entre": [r[3], r[4]], "gan_db": a.resp_db} for r in resp]}
     Path(a.salida).with_suffix(".limpieza.json").write_text(json.dumps(rep, ensure_ascii=False, indent=1))
-    print(f"pops tratados: {len(pops)}, respiraciones atenuadas {RESP_DB} dB: {len(resp)}  -> {a.salida}")
+    print(f"pops tratados: {len(pops)}, respiraciones atenuadas {a.resp_db} dB: {len(resp)}  -> {a.salida}")
     if a.video:
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.video[0], "-i", a.salida, "-map", "0:v", "-map", "1:a",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", a.video[1]], check=True)

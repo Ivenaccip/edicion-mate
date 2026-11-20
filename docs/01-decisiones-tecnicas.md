@@ -164,3 +164,6 @@ Un **crossfade de 10 a 20 ms** en cada corte (`acrossfade` de FFmpeg) elimina lo
 2. Capa A recibe solo las ventanas sospechosas y da segunda opinión con pregunta cerrada.
 3. Diff de re-transcripción contra transcript esperado para palabras faltantes.
 4. Todo lo anterior se vuelca a `pendientes.md` con timestamp y evidencia.
+
+### Validación de la capa B (prototipo, nov 2026)
+Ver `prototipos/essentia-cortes/README.md`. Resumen: DiscontinuityDetector acierta exacto en cortes sucios y huecos sin falsos en el limpio. Hallazgo clave: un corte en medio de una palabra puede ser físicamente continuo, así que la capa B incluye además la métrica "voz a ambos lados del corte". ClickDetector y GapsDetector requieren calibración con voz real.

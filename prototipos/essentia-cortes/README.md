@@ -30,11 +30,21 @@ Salida en `salida/`: `limpio.wav`, `sucio.wav`, `hueco.wav`, `detecciones.png` y
 
 Imagen: `salida/detecciones.png` (zoom ±1 s alrededor del corte).
 
+## Resultado con voz real (nota de WhatsApp, Opus 48 kHz, 15.1 s, nov 2026)
+| Versión | VozAmbosLados | Discontinuity | Click | Gaps |
+|---|---|---|---|---|
+| original sin tocar | - | 0 | 0 | 0 |
+| limpio | no | 0 | 0 | 0 |
+| sucio | **SÍ** | **SÍ, exacto** | **SÍ, exacto** | 0 |
+| hueco | no | **SÍ, ambos bordes** | SÍ, ambos bordes | **SÍ, exacto** |
+
+Imagen: `salida/detecciones_voz_real.png`. **Cero falsos positivos en los tres detectores** con los umbrales por defecto, tanto en el audio intacto como en el corte limpio. Los falsos de ClickDetector y GapsDetector eran un artefacto de la voz sintética, no un problema de calibración. Audio con compresión fuerte (20 kbps) y pico a 0 dBFS, es decir, condiciones peores que el video real.
+
 ## Conclusiones
 1. **DiscontinuityDetector es el detector principal.** Cero falsos en el corte limpio, acierto exacto en sucio y hueco con los umbrales por defecto.
 2. **Un corte en medio de una palabra puede ser físicamente continuo.** En una corrida anterior el empalme vocal→vocal cayó por azar en un punto donde la onda casi no salta (de -0.199 a -0.187) y ningún detector lo vio. Por eso se añadió `VozAmbosLados`: energía de voz 30 ms antes y 30 ms después del corte. Esa métrica es la que detecta "corté en medio del habla" aunque la onda sea suave.
-3. **ClickDetector necesita calibración con voz real.** La voz de espeak-ng tiene pulsos glotales que parecen clics; dispara 12–21 falsos en el limpio. Subir `detectionThreshold` a 40+ elimina también el verdadero. Se calibra en Fase 2 con cortes reales de Charlie.
-4. **GapsDetector no sirve con voz sintética** porque espeak produce silencio digital en cada pausa natural. En una grabación real hay ruido de sala y las pausas no son ceros, así que debería comportarse mejor. Pendiente de confirmar con la muestra.
+3. **ClickDetector y GapsDetector funcionan en voz real sin calibrar.** Los falsos que daban con espeak-ng (pulsos glotales que parecen clics, silencio digital en las pausas) desaparecen con una grabación real. Los umbrales por defecto quedan como punto de partida para Fase 2.
+4. **Confirmar con audio del video de Charlie** (micrófono y compresión distintos) antes de dar los umbrales por definitivos.
 5. **Lo que no puede hacer ninguna de estas capas:** saber si la palabra quedó completa. Eso lo da el diff de re-transcripción (capa 1 del auditor) y la opinión del modelo de audio nativo (capa A).
 
 ## Parámetros que quedaron

@@ -1,0 +1,110 @@
+{
+ "entrada": "/tmp/claude-0/muestra/nota.wav",
+ "salida": "prototipos/editor-pausas/salida/nota_editada.wav",
+ "sr": 44100,
+ "nivel_voz_dbfs": -15.2,
+ "duracion_original_s": 15.134,
+ "duracion_editada_s": 14.769,
+ "quitado_s": 0.35,
+ "pausas_encontradas": 10,
+ "pausas_acortadas": 2,
+ "reglas": {
+  "UMBRAL_DB": -35,
+  "MIN_PAUSA": 120,
+  "PAUSA_MAX": 450,
+  "PAUSA_OBJETIVO": 250,
+  "CROSSFADE": 15
+ },
+ "edl": [
+  {
+   "pausa": [
+    0.0,
+    0.27
+   ],
+   "dur_ms": 270,
+   "accion": "acortar a 150 ms",
+   "quitar": [
+    0.0,
+    0.12
+   ],
+   "quitado_ms": 120
+  },
+  {
+   "pausa": [
+    4.34,
+    4.68
+   ],
+   "dur_ms": 340,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    6.49,
+    6.71
+   ],
+   "dur_ms": 220,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    9.73,
+    10.21
+   ],
+   "dur_ms": 480,
+   "accion": "acortar a 250 ms",
+   "quitar": [
+    9.855,
+    10.085
+   ],
+   "quitado_ms": 230
+  },
+  {
+   "pausa": [
+    11.22,
+    11.37
+   ],
+   "dur_ms": 150,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    11.45,
+    11.6
+   ],
+   "dur_ms": 150,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    13.28,
+    13.52
+   ],
+   "dur_ms": 240,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    13.53,
+    13.71
+   ],
+   "dur_ms": 180,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    14.2,
+    14.34
+   ],
+   "dur_ms": 140,
+   "accion": "se deja"
+  },
+  {
+   "pausa": [
+    14.53,
+    14.66
+   ],
+   "dur_ms": 130,
+   "accion": "se deja"
+  }
+ ]
+}

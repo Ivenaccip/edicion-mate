@@ -1,4 +1,7 @@
-# Handoff — cierre de la sesión del 20 nov 2026 (tarde)
+# Handoff — estado general (actualizado 20 nov 2026, noche)
+
+> Sesión paralela de **capa visual / pantalla verde**: ver `docs/HANDOFF-pantalla-verde.md`.
+> Esta sesión (cortes + audio) y aquella no se pisan: una produce `cuerpo.mp4`, la otra lo viste.
 
 ## Qué es este proyecto
 Recrear el sistema de edición automática de shorts de Charlie Sebastian que construyó un editor
@@ -120,9 +123,15 @@ viendo el frame), ninguna palabra truncada en el diff de re-transcripción, cero
 - Preview a 576p está bien por ahora.
 - Limpieza de audio (`limpiar_audio.py`, 3 capas) entregada para que el usuario la evalúe de oído.
 
+## Limpieza de audio (último estado)
+`limpiar_audio.py` v2: paso-alto 85 Hz, de-pop puntual, y respiraciones detectadas **por la señal**
+(planitud espectral) nunca sobre frames con voz; la v1 bajaba arranques de palabra porque los tiempos
+de AssemblyAI llegan hasta 170 ms tarde. Entregado a −18 dB. Falta el veredicto de oído del usuario y
+el **timestamp exacto** del "soplido" que oye, para saber si es respiración o pop.
+
 ## Pendientes del lado del usuario
 Nuevos:
-- Veredicto de oído sobre la limpieza de audio (subir a −18 dB o bajar a −8 dB la atenuación de respiraciones).
+- Timestamp del soplido que oye en IMG_7889_916_limpio_v2.mp4.
 - **Video corto de prueba** (20–30 s, celular, con pausas largas a propósito como la nota 2). Desbloquea
   el paso 1.
 - **Audio con muletillas reales** ("eh", "este", "o sea") para cerrar la prueba de `disfluencies`.

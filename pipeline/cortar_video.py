@@ -60,6 +60,7 @@ def main():
     ap.add_argument("video"); ap.add_argument("edl"); ap.add_argument("salida")
     ap.add_argument("--final", action="store_true", help="1080p, preset slow; por defecto preview 576p veryfast")
     ap.add_argument("--rotar", choices=["ccw", "cw", "180"], help="rotar el video (celulares sin bandera de rotación)")
+    ap.add_argument("--encuadre", choices=["9:16", "16:9", "1:1"], help="recortar centrado a esta proporción (tras rotar)")
     a = ap.parse_args()
 
     fps, w, h, dur = ffprobe(a.video)
@@ -81,7 +82,14 @@ def main():
         concat = "".join(f"[v{i}]" for i in range(len(keep))) + f"concat=n={len(keep)}:v=1:a=0[vc];"
         rot = {"ccw": "transpose=2,", "cw": "transpose=1,", "180": "transpose=1,transpose=1,"}.get(a.rotar, "")
         corto = 1080 if a.final else 576            # lado corto: 576p preview, 1080p final; sirve vertical y horizontal
-        escala = f"[vc]{rot}scale='if(gt(iw,ih),-2,{corto})':'if(gt(iw,ih),{corto},-2)':flags=lanczos[vout]"
+        if a.encuadre:
+            aw, ah = (int(v) for v in a.encuadre.split(":"))
+            # recorte centrado a la proporción pedida: el lado que sobra se recorta, el otro se conserva
+            crop = (f"crop='if(gt(iw/ih,{aw}/{ah}),ih*{aw}/{ah},iw)':'if(gt(iw/ih,{aw}/{ah}),ih,iw*{ah}/{aw})',")
+            largo = corto * max(aw, ah) // min(aw, ah)
+            escala = f"[vc]{rot}{crop}scale={corto if ah > aw else largo}:{largo if ah > aw else corto}:flags=lanczos[vout]"
+        else:
+            escala = f"[vc]{rot}scale='if(gt(iw,ih),-2,{corto})':'if(gt(iw,ih),{corto},-2)':flags=lanczos[vout]"
         preset, crf = ("slow", 18) if a.final else ("veryfast", 23)
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.video, "-i", str(wav_cut),
                         "-filter_complex", partes + concat + escala, "-map", "[vout]", "-map", "1:a",
@@ -90,7 +98,7 @@ def main():
                         "-shortest", a.salida], check=True)
 
     _, _, _, dur_out = ffprobe(a.salida)
-    info = {"entrada": a.video, "edl": a.edl, "salida": a.salida, "fps": fps, "modo": "final" if a.final else "preview", "rotar": a.rotar,
+    info = {"entrada": a.video, "edl": a.edl, "salida": a.salida, "fps": fps, "modo": "final" if a.final else "preview", "rotar": a.rotar, "encuadre": a.encuadre,
             "duracion_original_s": round(dur, 3), "tramos_quitados": quitar, "tramos_conservados": [[x, b] for x, b in keep],
             "empalmes_en_salida_s": empalmes, "desfase_redondeo_max_ms": round(desfase * 1000, 2),
             "duracion_esperada_s": round(esperado, 3), "duracion_audio_cortado_s": round(dur_audio, 3),

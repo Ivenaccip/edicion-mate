@@ -112,10 +112,17 @@ viendo el frame), ninguna palabra truncada en el diff de re-transcripción, cero
   El detector de retomas pasa a ser parte del paso 2.
 - Hosts añadidos al entorno: drive.google.com, drive.usercontent.google.com (descarga directa de Drive).
 
+## Aclaraciones del usuario (20 nov, noche)
+- **Los videos son del usuario, no de Charlie.** Charlie era solo el ejemplo de donde salió el pipeline.
+  IMG_7889 es su raw real: graba en vertical 4K con el celular, deja retomas al inicio. El **detector
+  de retomas es parte fija del editor** (paso 2), no un extra.
+- **Encuadre: 9:16** con recorte centrado. Implementado en `cortar_video.py --encuadre 9:16`.
+- Preview a 576p está bien por ahora.
+- Limpieza de audio (`limpiar_audio.py`, 3 capas) entregada para que el usuario la evalúe de oído.
+
 ## Pendientes del lado del usuario
 Nuevos:
-- Confirmar si IMG_7889 es un raw real de Charlie (define si las retomas son parte normal del flujo).
-- Decidir encuadre 9:16 para raws 4096x2160 rotados (recorte vs barras).
+- Veredicto de oído sobre la limpieza de audio (subir a −18 dB o bajar a −8 dB la atenuación de respiraciones).
 - **Video corto de prueba** (20–30 s, celular, con pausas largas a propósito como la nota 2). Desbloquea
   el paso 1.
 - **Audio con muletillas reales** ("eh", "este", "o sea") para cerrar la prueba de `disfluencies`.

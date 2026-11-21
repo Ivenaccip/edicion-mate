@@ -4,7 +4,11 @@ Sesión de pantalla verde sobre el raw real `IMG_7889.MP4` (4K vertical, verde o
 `HANDOFF-pantalla-verde.md`). Alcance: capa visual. No toca cortes ni audio.
 
 ## Resultado en una frase
-**Ganador provisional: híbrido** = llave por crominancia (misma fórmula que `chromakey` de FFmpeg) unida
+**Elegido por el usuario (21 nov): A, FFmpeg `chromakey` + `despill`.** Sin modelos, un solo comando de FFmpeg,
+y el escritorio se conserva. El híbrido queda documentado como mejora opcional del pelo si algún día hace falta.
+Lo que sigue describe la comparación completa.
+
+**Ganador técnico de la comparación: híbrido** = llave por crominancia (misma fórmula que `chromakey` de FFmpeg) unida
 con el matting por IA (RVM): `alfa = max(chromakey, rvm)`. La IA pone el pelo y los lentes suaves; la llave
 conserva laptop, silla, libreta y celular, que la IA borra porque solo entiende "persona".
 
@@ -115,7 +119,8 @@ ffmpeg -ss 12 -t 3 -i IMG_7889.MP4 -i fondo.png -filter_complex "[0:v]transpose=
 - La GPU de la máquina de producción (pendiente del usuario) cambia esto: RVM en CUDA corre a > 60 fps.
 
 ## Decisiones tomadas en esta sesión
-1. Llave: híbrido chromakey+RVM. Chromakey puro es el respaldo sin modelos (pelo escalonado pero usable).
+1. Llave: **chromakey+despill de FFmpeg** (decisión del usuario, 21 nov). Híbrido chromakey+RVM solo si el pelo
+   lo pide; RVM solo, descartado.
 2. Parámetros del chromakey para este set: `color=0x1e7032 similarity=0.08 blend=0.00`, despill
    `mix=0.5 expand=0`, borde: erosión 1 px + pluma 1.5 px.
 3. Alfa hacia Hyperframes: WebM VP9 yuva420p. ProRes 4444 solo para intercambio.
@@ -130,3 +135,34 @@ ffmpeg -ss 12 -t 3 -i IMG_7889.MP4 -i fondo.png -filter_complex "[0:v]transpose=
 - Entubar a FFmpeg sin PNG intermedios (arriba).
 - Probar el WebM en `<video>` de Hyperframes con b-roll en video (no solo imagen) de fondo.
 - Captions: siguiente sesión, con la spec. La zona está reservada en la composición.
+
+## De qué depende "la misma calidad que el TikTok" (21 nov 2026)
+Pregunta del usuario: cómo llevar el raw de Drive al nivel del TikTok de referencia. Se midió el TikTok
+(`tiktok_7611273219009498375.mp4`, 576x1024, 24 fps, 374 kbps) contra el raw y contra nuestro render base.
+
+**En píxeles el raw ya gana**: 4K frente a 576p y 374 kbps. La "calidad" que se nota es editorial. Medido:
+
+| Capa | TikTok de referencia | Raw / render base | Qué falta |
+|---|---|---|---|
+| Cortes | 13 cortes duros en 44.6 s (scdet), uno cada 3.4 s | sesión de cortes (EDL) | ya está en el otro carril |
+| B-roll de fondo | cambia **cada 1.9 s** (24 cambios), capturas de UI, pantallas, oficina | fondo fijo | b-roll por tema: capturas reales o UI hecha en HTML |
+| Captions | bloques de 2–3 palabras, **uno cada 0.6 s** (74 bloques), palabra activa en caja azul | ninguna | generar desde `palabras.json` + EDL |
+| Luminosidad del cuadro | luma media **69 %** (fondos claros/cálidos) | 11.7 % (degradado oscuro) · raw 30 % | fondos claros, no oscuros |
+| Color de la cara | saturación 49 %, cálida (b* +9.7) | render base 35 % · raw 35 % | grado ligero: saturate 1.3, contrast 1.06 |
+| Escala de la persona | laptop ocupa 552–575 px de 576 (sin zoom), pelo empieza al 37 % | pelo al 33 % | igual; opcional bajar 4 % |
+| Tarjeta detrás | b-roll cálido con esquinas redondeadas desde ~70 % de la altura | no | hecha (v2) |
+| Título de apertura | condensada mayúscula sobre fondo abstracto, acento naranja | no | plantilla de título en Hyperframes |
+| Logo | no visible en los frames muestreados | no | pendiente de assets |
+
+### v2 de la composición (`composicion/index.html`)
+Aplica sobre el mismo clip de 3 s todas las capas de la tabla salvo el título: fondo claro con degradado radial,
+b-roll de terminal hecho en HTML (nítido a 1080, sin descargar nada, las líneas aparecen en tiempos fijos),
+tarjeta cálida redondeada con sombra de contacto, grado ligero sobre la persona, captions con las palabras reales
+de AssemblyAI entre 12.0 y 15.0 s agrupadas de 2–3 y palabra activa en caja azul, y logo provisional en zona
+segura. `npm run check`: 0 errores (quedan avisos de estilo). Render 1080x1920: 25.6 s para 3 s.
+La composición base anterior está en `composicion/compositions/base.html`.
+Láminas: `img/capa-visual/brecha_raw_a_referencia_4x.jpg` y `img/capa-visual/composicion_v2_0.8_1.7_2.95s.jpg`.
+
+Lo que hace que v2 todavía no sea la referencia: (1) el b-roll tiene que cambiar cada ~2 s y hablar del tema
+(capturas reales o UI en HTML por bloque de guion); (2) las captions necesitan la spec (fuente, tamaño, color)
+y el remapeo con el EDL para todo el short; (3) título de apertura y cierre; (4) assets de marca.

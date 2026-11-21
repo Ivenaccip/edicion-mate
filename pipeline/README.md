@@ -118,3 +118,21 @@ Resultado v3 en IMG_7889: graves en los golpes −5..−13 dB, nivel total de vo
 anterior y de entrada en los primeros 100 ms del siguiente, en video y audio con los mismos tiempos.
 Solo en empalmes internos; no al inicio ni al final. Se omite en tramos más cortos que 0.2 s.
 `--fade 0` = corte seco. Imagen: `docs/img/fase1_fade_0.1s_empalme.png`.
+
+## Separar la voz del viento con un modelo: `separar_voz.py` (21 nov 2026)
+Pregunta del usuario: "¿podrías separar el viento?". Se probaron dos separadores sobre el audio de IMG_7889:
+
+| Método | Graves en golpe "meses" | Voz limpia (12–13 s) | Veredicto |
+|---|---|---|---|
+| noisereduce (sustracción espectral no estacionaria) | −31.4 → −39.4 dB | **−28.9 → −41.7 dB** | Descartado: se come 13 dB de voz |
+| **DeepFilterNet3** (red de mejora de voz, CPU) | −31.4 → −38.7 dB | −28.9 → −29.1 dB | Separa viento sin tocar la voz. 33 s de audio en 0.8 s |
+| filtro dinámico v4 (sin modelo) | −31.4 → −47.4 dB | −28.9 → −29.3 dB | Más graves fuera, pero solo graves |
+| **DeepFilterNet3 + filtro v4** | ver tabla en consola | ≈ intacta | Candidato a estándar |
+
+DeepFilterNet actúa en todo el espectro (también baja respiraciones 1 dB y fondo 1.2 dB); el filtro
+dinámico solo en graves. Juntos cubren el viento completo.
+
+Infra: torch rompe el entorno principal (baja numpy), por eso va en `.venv-df`. Los pesos oficiales
+están en GitHub, que el proxy del entorno bloquea aunque el host esté permitido (GitHub va por otro
+canal); se usa la copia Apache-2.0 de Hugging Face `fal/DeepFilterNet3` convertida a checkpoint.
+Hosts añadidos: download.pytorch.org, download-r2.pytorch.org.

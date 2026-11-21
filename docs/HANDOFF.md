@@ -135,9 +135,12 @@ el **timestamp exacto** del "soplido" que oye, para saber si es respiración o p
 - Regla nueva: **fundido 0.1 s** de salida/entrada en cada empalme (video y audio), implementada en
   `cortar_video.py --fade`.
 
+- **Separación por modelo**: `pipeline/separar_voz.py` (DeepFilterNet3, entorno `.venv-df`). Quita
+  viento en todo el espectro sin tocar la voz. Candidato a estándar: DeepFilterNet3 → `limpiar_audio.py`.
+
 ## Pendientes del lado del usuario
 Nuevos:
-- Veredicto de oído sobre la v3 (de-viento) y sobre el fundido de 0.1 s.
+- Veredicto de oído entre v4 (solo filtro), DFN (solo modelo) y DFN + filtro.
 - Conseguir un dead cat para el micrófono antes del próximo raw.
 - **Video corto de prueba** (20–30 s, celular, con pausas largas a propósito como la nota 2). Desbloquea
   el paso 1.

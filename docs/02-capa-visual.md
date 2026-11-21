@@ -107,7 +107,10 @@ python pipeline/visual/quitar_verde.py IMG_7889.MP4 seq_hibrido --metodo hibrido
 pipeline/visual/secuencia_a_video.sh seq_hibrido composicion/assets/fondo_degradado.png IMG_7889.MP4 12 3 salida
 # comprobar que Chrome respeta el alfa
 node pipeline/visual/probar_alfa_chrome.cjs salida_alfa.webm captura.png
-# solo FFmpeg (candidato A), 4K → 576 con llave a 1080
+# método elegido, por zonas: máscara una vez por set + llave
+python pipeline/visual/mascara_sombras.py IMG_7889.MP4 mascara.png
+pipeline/visual/quitar_verde_ffmpeg.sh IMG_7889.MP4 12 3 composicion/assets/fondo_degradado.png salida mascara.png
+# solo FFmpeg (candidato A), 4K → 576 con llave a 1080, sin zonas
 ffmpeg -ss 12 -t 3 -i IMG_7889.MP4 -i fondo.png -filter_complex "[0:v]transpose=2,crop=iw:iw*16/9,scale=1080:1920,format=rgba,chromakey=color=0x1e7032:similarity=0.08:blend=0.00,despill=type=green:mix=0.5:expand=0,scale=576:1024[p];[1:v]scale=576:1024[f];[f][p]overlay=format=auto,format=yuv420p" -map 0:a -c:v libx264 -preset veryfast -crf 20 -c:a aac salida_576.mp4
 ```
 
@@ -166,3 +169,24 @@ Láminas: `img/capa-visual/brecha_raw_a_referencia_4x.jpg` y `img/capa-visual/co
 Lo que hace que v2 todavía no sea la referencia: (1) el b-roll tiene que cambiar cada ~2 s y hablar del tema
 (capturas reales o UI en HTML por bloque de guion); (2) las captions necesitan la spec (fuente, tamaño, color)
 y el remapeo con el EDL para todo el short; (3) título de apertura y cierre; (4) assets de marca.
+
+## "Estática" en la esquina inferior izquierda (21 nov): causa y arreglo
+**Qué era.** Encima de la laptop, a la izquierda, la tela verde está en sombra: RGB ≈ (5,40,11) frente a (31,112,50)
+del verde clave. Su distancia UV al clave es 0.084–0.100, justo por encima del umbral global 0.08. Como el umbral
+cae en el nivel del ruido del sensor, cada píxel entra y sale frame a frame: la zona visible oscilaba entre 57 % y
+88 % con saltos de 1.6 puntos por frame. Eso se ve como estática verde.
+
+**Por qué no basta subir el umbral.** A 0.10 ya se pierde más silla y a 0.12 desaparece la persona entera (la
+sudadera negra está a 0.156). Entre el verde en sombra (≤ 0.10) y el negro (0.156) sí hay hueco, pero solo
+se puede aprovechar donde no hay persona.
+
+**Arreglo: llave por zonas.** La cámara no se mueve, así que las sombras están siempre en el mismo sitio.
+`pipeline/visual/mascara_sombras.py` muestrea 16 frames del raw y marca los píxeles que en ≥ 90 % de ellos son
+verdosos y están a distancia 0.065–0.14 del clave (estáticos: el spill sobre pelo o manos se mueve y queda fuera),
+abre, dilata 10 px y pluma 4 px. `pipeline/visual/quitar_verde_ffmpeg.sh` corre dos `chromakey` (0.08 global y
+0.13 en la máscara) y los une con `maskedmerge`. Resultado en la zona: visible 4 % (es la manga, que debe quedar),
+saltos de 0.34 puntos por frame, nada de verde. Máscara de este set: `pipeline/salida/IMG_7889_mascara_sombras_1080.png`
+(0.9 % del cuadro). Imágenes: `img/capa-visual/estatica_esquina_antes_despues.jpg`, `img/capa-visual/mascara_sombras_sobre_raw.jpg`.
+
+Si cambia la posición de la cámara o de la luz, se regenera la máscara con un comando; si no, se reutiliza.
+Lo mismo sirve para cualquier otra sombra fija (p. ej. la esquina derecha si algún día aparece).

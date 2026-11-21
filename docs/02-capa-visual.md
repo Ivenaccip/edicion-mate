@@ -190,3 +190,10 @@ saltos de 0.34 puntos por frame, nada de verde. Máscara de este set: `pipeline/
 
 Si cambia la posición de la cámara o de la luz, se regenera la máscara con un comando; si no, se reutiliza.
 Lo mismo sirve para cualquier otra sombra fija (p. ej. la esquina derecha si algún día aparece).
+
+## Auditor de la llave (21 nov): cuánto mover el umbral y dónde
+`pipeline/visual/auditar_llave.py` convierte la "estática" en un número y una acción. Ver `HANDOFF-auditor.md`.
+Sobre el clip con chromakey 0.08 global reportó exactamente la esquina (x 0–240, y 1120–1280, conmutación 10 %
+por frame), midió el verde ahí (p95 0.095) y pidió 0.11 como mínimo, por zona porque el techo del negro es 0.141.
+Con 0.085 global + 0.13 en la máscara: APROBADO. El global subió de 0.08 a 0.085 porque el auditor encontró una
+celda al filo (necesario 0.081); la persona no cambia (sigue a 0.156 del clave).

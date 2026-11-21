@@ -7,7 +7,7 @@
 # Uso: quitar_verde_ffmpeg.sh raw.mp4 inicio_s dur_s fondo.png salida_base [mascara.png]
 set -euo pipefail
 RAW=$1; INI=$2; DUR=$3; FONDO=$4; OUT=$5; MASC=${6:-}
-CLAVE=0x1e7032; SIM=0.08; SIM_SOMBRA=0.13
+CLAVE=0x1e7032; SIM=0.085; SIM_SOMBRA=0.13
 PREP="transpose=2,crop=iw:iw*16/9,scale=1080:1920,format=rgba"
 DESPILL="despill=type=green:mix=0.5:expand=0,format=rgba"
 if [ -n "$MASC" ]; then

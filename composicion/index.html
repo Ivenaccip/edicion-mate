@@ -35,10 +35,13 @@
 
       /* Contadores sobre el b-roll (planos 6, 8, 9, 10) */
       /* Contadores: siempre en la franja superior (y 330-560), libre de la persona, en blanco con sombra sobre cualquier b-roll */
-      .contador { z-index: 2; position: absolute; left: 180px; width: 760px; top: 330px; text-align: left; color: #fff; opacity: 0;
-        text-shadow: 0 4px 18px rgba(0,0,0,.6), 0 0 2px rgba(0,0,0,.8); }
+      /* Texto "doble": relleno blanco con contorno negro por fuera (paint-order pinta el borde debajo del
+         relleno) y una sombra suave. Se lee igual sobre público claro, globo oscuro o crema. Reutilizable en captions. */
+      .texto-doble { color: #fff; -webkit-text-stroke: 8px #111; paint-order: stroke fill;
+        text-shadow: 0 6px 18px rgba(0,0,0,.45); }
+      .contador { z-index: 2; position: absolute; left: 180px; width: 760px; top: 330px; text-align: left; opacity: 0; }
       .contador b { display: block; font-size: 150px; line-height: 1; letter-spacing: -0.04em; }
-      .contador span { display: block; font-size: 44px; font-weight: 700; margin-top: 10px; color: #f0f0f4; }
+      .contador span { display: block; font-size: 44px; font-weight: 800; margin-top: 10px; -webkit-text-stroke-width: 5px; }
 
       /* Capa 2: tarjeta cálida + sombra; capa 3: persona (WebM con alfa, chromakey por zonas + despill) */
       #tarjeta { z-index: 3; position: absolute; left: 0; right: 0; top: var(--tarjeta-y); bottom: 0; border-radius: 56px 56px 0 0; overflow: hidden;
@@ -77,19 +80,19 @@
       <video class="ventana clip" id="v-robots" src="./assets/b1_robots_720.mp4" data-start="3.6" data-duration="4" data-track-index="1" muted playsinline></video>
       <!-- Planos 5-6 (7.6-11.6): clase, "hemos capacitado a más de 50,000 personas" -->
       <video class="ventana clip" id="v-aula" src="./assets/b4_aula_720.mp4" data-start="7.6" data-duration="4" data-track-index="1" muted playsinline></video>
-      <div class="contador clip" id="c-personas" data-start="9.6" data-duration="2" data-track-index="2"><b>+50,000</b><span>personas capacitadas</span></div>
+      <div class="contador clip" id="c-personas" data-start="9.6" data-duration="2" data-track-index="2"><b class="texto-doble">+50,000</b><span class="texto-doble">personas capacitadas</span></div>
 
       <!-- Planos 7-8 (11.6-15.6): globo, "en toda Latinoamérica… más de 70 empresas" -->
       <video class="lleno clip" id="v-globo" src="./assets/b3_globo_1080x1920.mp4" data-start="11.6" data-duration="4" data-track-index="1" muted playsinline></video>
-      <div class="contador claro clip" id="c-empresas" data-start="13.6" data-duration="2" data-track-index="2"><b>+70</b><span>empresas impactadas</span></div>
+      <div class="contador clip" id="c-empresas" data-start="13.6" data-duration="2" data-track-index="2"><b class="texto-doble">+70</b><span class="texto-doble">empresas impactadas</span></div>
 
       <!-- Plano 9 (15.6-17.6): público, "más de 10 eventos" -->
       <video class="lleno clip" id="v-publico" src="./assets/b2_publico_1080x1920.mp4" data-start="15.6" data-duration="2" data-track-index="1" muted playsinline></video>
-      <div class="contador claro clip" id="c-eventos" data-start="15.6" data-duration="2" data-track-index="2"><b>+10</b><span>eventos</span></div>
+      <div class="contador clip" id="c-eventos" data-start="15.6" data-duration="2" data-track-index="2"><b class="texto-doble">+10</b><span class="texto-doble">eventos</span></div>
 
       <!-- Plano 10 (17.6-19.6): globo otra vez, "13 países" -->
       <video class="lleno clip" id="v-globo2" src="./assets/b3_globo_1080x1920.mp4" data-start="17.6" data-duration="2" data-media-start="6" data-track-index="1" muted playsinline></video>
-      <div class="contador claro clip" id="c-paises" data-start="17.6" data-duration="2" data-track-index="2"><b>13</b><span>países de Latinoamérica</span></div>
+      <div class="contador clip" id="c-paises" data-start="17.6" data-duration="2" data-track-index="2"><b class="texto-doble">13</b><span class="texto-doble">países de Latinoamérica</span></div>
 
       <!-- Plano 11 (19.6-21.8): público, segunda parte -->
       <video class="lleno clip" id="v-publico2" src="./assets/b2_publico_1080x1920.mp4" data-start="19.6" data-duration="2.2" data-media-start="4.5" data-track-index="1" muted playsinline></video>

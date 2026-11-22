@@ -22,10 +22,6 @@ s = s.replace('    </div>\n    <script>', '      </div>\n    </div>\n    <script
 s = s.replace('data-composition-src="compositions/siguenos.html"', 'data-composition-src="compositions/siguenos.html"')
 open('preview/index.html', 'w').write(s)
 t = open('compositions/siguenos.html').read()
-t = t.replace('data-width="1080" data-height="1920"', 'data-width="576" data-height="1024"')
-t = t.replace('html, body { width: 1080px; height: 1920px;', 'html, body { width: 576px; height: 1024px;')
-t = t.replace('#siguenos { position: relative; width: 1080px; height: 1920px;', '#siguenos { position: relative; width: 576px; height: 1024px; overflow: hidden; }\n      #escala { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform: scale(0.533333); transform-origin: 0 0;')
-t = re.sub(r'(<div id="siguenos"[^>]*>)', r'\1\n      <div id="escala">', t, count=1)
 t = t.replace('    </div>\n    <script>', '      </div>\n    </div>\n    <script>', 1)
 open('preview/compositions/siguenos.html', 'w').write(t)
 PY

@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="../vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "InterLocal"; src: url("../vendor/Inter-ExtraBold.otf") format("opentype"); font-weight: 400 900; }
+      /* v2: las capas que, medidas en el TikTok de referencia, separan el raw del short terminado.
+         Todo provisional hasta recibir spec visual y assets; los valores salen de medir la referencia. */
+      :root {
+        --crema: #f1ece3;          /* fondo claro cálido de la referencia (luma media del frame 69 %) */
+        --tinta: #1b1b1f;
+        --azul: #2f8fff;           /* caja de la palabra activa */
+        --naranja: #e07b4a;        /* acento de la referencia */
+        --font: "InterLocal", "DejaVu Sans", sans-serif;
+        --captions-y: 1060px;      /* 55 % de la altura, como en la referencia */
+        --tarjeta-y: 1350px;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); }
+      #root { position: relative; width: 1080px; height: 1920px; font-family: var(--font); }
+      .capa { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+
+      /* Capa 0: fondo claro con un degradado suave (no plano: la referencia nunca usa un plano puro) */
+      #fondo { z-index: 0; background: radial-gradient(120% 80% at 50% 20%, #fbf8f2 0%, var(--crema) 55%, #e4dccf 100%); }
+
+      /* Capa 0.5: b-roll del tema. Aquí, una terminal hecha en HTML (nítida a 1080, sin descargar nada). */
+      #broll { z-index: 1; position: absolute; left: 108px; top: 300px; width: 864px; height: 450px;
+        background: #121418; border-radius: 28px; box-shadow: 0 30px 80px rgba(0,0,0,.28);
+        padding: 44px 48px; color: #d7dbe0; font-family: "DejaVu Sans Mono", monospace; font-size: 30px; line-height: 1.5; }
+      #broll .barra { position: absolute; left: 0; top: 0; right: 0; height: 56px; background: #1c1f25; border-radius: 28px 28px 0 0; }
+      #broll .barra i { position: absolute; top: 20px; width: 16px; height: 16px; border-radius: 50%; }
+      #broll .ln { opacity: 0; margin-top: 30px; }
+      #broll .ln:first-of-type { margin-top: 40px; }
+      #broll .ok { color: #7bd88f; } #broll .cmd { color: #ffd166; } #broll .dim { color: #8a919c; }
+
+      /* Capa 1: tarjeta cálida con esquinas redondeadas detrás de la persona + sombra de contacto */
+      #tarjeta { z-index: 2; position: absolute; left: 0; right: 0; top: var(--tarjeta-y); bottom: 0;
+        border-radius: 56px 56px 0 0; overflow: hidden;
+        background-image: url("../assets/fondo_broll.png"); background-size: 1080px 1920px; background-position: 0 calc(-1 * var(--tarjeta-y));
+        filter: brightness(1.35) saturate(1.15); box-shadow: 0 -20px 60px rgba(0,0,0,.25); }
+      #sombra { z-index: 3; position: absolute; left: 140px; right: 140px; top: 1500px; height: 420px;
+        background: radial-gradient(60% 50% at 50% 60%, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 70%); }
+
+      /* Capa 2: persona (WebM con alfa, chromakey+despill) con un grado ligero: la referencia tiene
+         la cara con 49 % de saturación frente a 35 % del raw. */
+      #persona { z-index: 4; object-fit: cover; filter: saturate(1.3) contrast(1.06) brightness(1.02); }
+
+      /* Capa 3: captions, 2-3 palabras por bloque, palabra activa en caja azul (estilo de la referencia) */
+      #captions { z-index: 5; position: absolute; left: 0; width: 1080px; top: calc(var(--captions-y) - 60px); text-align: center; }
+      .bloque { position: absolute; left: 108px; width: 864px; opacity: 0; font-size: 66px; font-weight: 800; color: #fff;
+        letter-spacing: -0.01em; text-shadow: 0 4px 18px rgba(0,0,0,.55), 0 0 2px rgba(0,0,0,.8); }
+      .bloque span { display: inline-block; padding: 4px 16px; border-radius: 16px; margin: 0 2px; }
+      .bloque span.on { background: var(--azul); text-shadow: none; }
+
+      /* Capa 4: logo (marcador de posición) */
+      #logo { z-index: 6; position: absolute; left: 108px; top: 220px; height: 76px; padding: 0 26px; border-radius: 38px;
+        background: rgba(27,27,31,.9); color: #fff; font-weight: 700; font-size: 34px; line-height: 76px; letter-spacing: -0.01em; }
+      #logo b { color: var(--naranja); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="3" data-width="1080" data-height="1920">
+      <div id="fondo" class="clip capa" data-start="0" data-duration="3" data-track-index="0"></div>
+
+      <div id="broll" class="clip" data-start="0" data-duration="3" data-track-index="1">
+        <div class="barra"><i style="left:24px;background:#ff5f57"></i><i style="left:50px;background:#febc2e"></i><i style="left:76px;background:#28c840"></i></div>
+        <div class="ln"><span class="dim">$</span> <span class="cmd">python pipeline/editar.py raw.mp4</span></div>
+        <div class="ln"><span class="ok">✓</span> transcripción: 108 palabras</div>
+        <div class="ln"><span class="ok">✓</span> retoma detectada, 8.77 s fuera</div>
+        <div class="ln"><span class="ok">✓</span> verde quitado, fondo puesto</div>
+        <div class="ln"><span class="dim">render</span> cuerpo_576.mp4 <span class="ok">listo</span></div>
+      </div>
+
+      <div id="tarjeta" class="clip" data-start="0" data-duration="3" data-track-index="2"></div>
+      <div id="sombra"></div>
+
+      <video id="persona" class="clip capa" src="../assets/persona_3s_chromakey.webm" data-start="0" data-duration="3" data-track-index="3" muted playsinline></video>
+      <audio id="voz" src="../assets/voz_3s.m4a" data-start="0" data-duration="3" data-track-index="4"></audio>
+
+      <!-- Palabras reales de IMG_7889 entre 12.0 y 15.0 s (AssemblyAI), agrupadas de 2-3 -->
+      <div id="captions" class="clip" data-start="0" data-duration="3" data-track-index="5">
+        <div class="bloque" id="b0"><span data-t="0.000">largos</span><span data-t="0.390">meses</span><span data-t="0.615">de</span></div>
+        <div class="bloque" id="b1"><span data-t="0.695">estar</span><span data-t="1.095">en el</span><span data-t="1.208">mundo</span></div>
+        <div class="bloque" id="b2"><span data-t="1.480">de la</span><span data-t="1.592">inteligencia</span></div>
+        <div class="bloque" id="b3"><span data-t="2.185">artificial.</span></div>
+        <div class="bloque" id="b4"><span data-t="2.923">Por fin</span></div>
+      </div>
+
+      <div id="logo" class="clip" data-start="0" data-duration="3" data-track-index="6">fundamentos<b>.ai</b></div>
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      // Persona entra; b-roll "escribe" sus líneas en tiempos fijos.
+      tl.fromTo("#persona", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0);
+      [0.15, 0.6, 1.1, 1.7, 2.3].forEach((t, i) => tl.fromTo(`#broll .ln:nth-of-type(${i + 2})`, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.18, ease: "power2.out" }, t));
+      // Captions: cada bloque aparece con su primera palabra y desaparece cuando empieza el siguiente;
+      // la palabra activa cambia en el instante en que AssemblyAI la oye empezar.
+      const bloques = Array.from(document.querySelectorAll(".bloque"));
+      const fin = 3.0;
+      bloques.forEach((b, i) => {
+        const spans = Array.from(b.querySelectorAll("span"));
+        const t0 = parseFloat(spans[0].dataset.t);
+        const t1 = i + 1 < bloques.length ? parseFloat(bloques[i + 1].querySelector("span").dataset.t) : fin;
+        tl.fromTo(b, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.12, ease: "back.out(2)" }, t0);
+        tl.set(b, { opacity: 0 }, t1);
+        spans.forEach((s, j) => {
+          tl.set(s, { className: "on" }, parseFloat(s.dataset.t));
+          if (j + 1 < spans.length) tl.set(s, { className: "" }, parseFloat(spans[j + 1].dataset.t));
+        });
+      });
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

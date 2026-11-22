@@ -197,3 +197,16 @@ Sobre el clip con chromakey 0.08 global reportó exactamente la esquina (x 0–2
 por frame), midió el verde ahí (p95 0.095) y pidió 0.11 como mínimo, por zona porque el techo del negro es 0.141.
 Con 0.085 global + 0.13 en la máscara: APROBADO. El global subió de 0.08 a 0.085 porque el auditor encontró una
 celda al filo (necesario 0.081); la persona no cambia (sigue a 0.156 del clave).
+
+## v3: cuerpo completo con b-roll (22 nov 2026)
+`composicion/index.html`, 33.27 s. Fuentes: cuatro clips del usuario (Pexels 8721923 robots, Pexels 12309688
+público vertical, Pixabay 189046 globo, Pexels 16873592 clase), bajados de Drive y pre-recortados a 1280x720
+(ventana flotante) o 1080x1920 (pantalla completa) en `composicion/assets/b*.mp4`. Persona: WebM con alfa del
+cuerpo entero (llave por zonas, 12 MB). Contadores en HTML (+50,000, +70, +10, 13) en la franja superior.
+Tarjeta "Síguenos" como sub-composición de 27.1 s al cierre. Sin captions (van al final, con la spec).
+
+**Render: 1294 s (21.6 min) para 33 s a 1080x1920** en 4 núcleos. Causas medidas: Chromium del contenedor sin
+`HeadlessExperimental.beginFrame` (cae a modo captura), persona extraída a 998 PNG de 1080x1920, nueve
+elementos de video. Plan para acelerar: `npx hyperframes browser` (Chrome propio), variante de preview a
+576x1024 con WebM de persona a 576, un solo `<video>` por clip con `data-media-start`, `--start/--end` para
+rendir solo el tramo cambiado, y `npx hyperframes benchmark` para medir. Capturas: `img/capa-visual/composicion_v3_capturas.jpg`.

@@ -210,3 +210,28 @@ Tarjeta "Síguenos" como sub-composición de 27.1 s al cierre. Sin captions (van
 elementos de video. Plan para acelerar: `npx hyperframes browser` (Chrome propio), variante de preview a
 576x1024 con WebM de persona a 576, un solo `<video>` por clip con `data-media-start`, `--start/--end` para
 rendir solo el tramo cambiado, y `npx hyperframes benchmark` para medir. Capturas: `img/capa-visual/composicion_v3_capturas.jpg`.
+
+## Por qué el render v3 salió oscuro y sin b-roll (22 nov): HDR en un clip
+Síntoma: en el MP4 rendido la persona tapaba todo con un fondo azul oscuro y tinte rojizo; título, b-roll y
+contadores no se veían, pero las capturas (`snapshot`) sí los mostraban. Diagnóstico por eliminación (renders de
+1 s quitando capas) y registrando los comandos de FFmpeg que lanza Hyperframes: la extracción de la persona
+terminaba en `colorspace=all=bt2020:iall=bt709`, es decir, Hyperframes convertía **toda** la composición a
+HDR, y ese filtro no conserva el canal alfa, así que la persona salía opaca con el fondo despillado (azul oscuro)
+y el filtro `saturate(1.3)` lo volvía rojizo.
+
+Causa raíz: el clip vertical de Pexels 12309688 viene de celular en **HLG BT.2020** (`arib-std-b67`). Hyperframes
+detecta un clip HDR y pasa el resto a su transferencia. Arreglo: convertir el clip a SDR bt709 al pre-recortarlo:
+```
+zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p
+```
+más `-color_primaries bt709 -color_trc bt709 -colorspace bt709`. Regla para el pipeline: **todo b-roll entra en
+SDR bt709**; `ffprobe` de `color_transfer` antes de usarlo (si dice `arib-std-b67` o `smpte2084`, tonemap).
+Esto también explica por qué la v2 (sin b-roll) rindió bien y la v3 no.
+
+## Aceleración del render (22 nov)
+1. **Chrome propio de Hyperframes** (`npx hyperframes browser ensure` sin las variables `PUPPETEER_EXECUTABLE_PATH`,
+   `CHROME_PATH` y `CHROME_BIN` del contenedor, que apuntan al Chromium de Playwright sin `beginFrame`). Con el
+   clip de 3 s: 22 s frente a 25.6 s; la ganancia grande se mide en el render largo (abajo).
+2. **Variante de preview a 576x1024**: `pipeline/visual/hacer_preview.sh` genera `composicion/preview/` con el
+   canvas declarado a 576x1024 (`zoom: 0.5333` sobre el root, sin tocar los px del diseño) y assets a 576
+   (`composicion/assets/576/`: persona WebM con alfa reescalada, b-roll a 576 o 684x384).

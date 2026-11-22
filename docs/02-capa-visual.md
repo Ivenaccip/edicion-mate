@@ -261,5 +261,5 @@ copiados a `composicion/assets/logo_{negro,blanco}.png`. Medido en el render fin
 (mesa) tiene luminancia 40/255 estable; la libreta, justo encima, 157. El negro desaparece sobre la mesa y solo se
 lee sobre la libreta, que se mueve; el blanco se lee en la esquina todo el video. **Elegido: blanco**.
 Posición: no en la esquina literal, porque los últimos ~480 px de altura y los ~130 px de la derecha los tapan los
-botones y el texto de TikTok, Reels y Shorts. Va a `right: 108px; top: 1370px` (260 px de ancho), con sombra suave.
+botones y el texto de TikTok, Reels y Shorts. Primero se puso a `top: 1370px` (dentro de la zona segura); el usuario lo quiere abajo, junto al celular: queda a `right: 108px; top: 1786px` (260 px de ancho), con sombra suave, asumiendo que la interfaz de la plataforma puede taparlo.
 El píldora "fundamentos.ai" de arriba a la izquierda se quitó. Imagen: `img/capa-visual/logo_analisis_esquina_y_zonas_seguras.jpg`.

@@ -56,10 +56,11 @@
       /* Capa 6: sub-composición "Síguenos" (planos 14-16) */
       #siguenos { z-index: 6; position: absolute; inset: 0; }
 
-      /* Capa 7: logo provisional, zona segura */
-      #logo { z-index: 7; position: absolute; left: 140px; top: 150px; height: 76px; padding: 0 26px; border-radius: 38px;
-        background: rgba(27,27,31,.9); color: #fff; font-weight: 700; font-size: 34px; line-height: 76px; }
-      #logo b { color: var(--naranja); }
+      /* Capa 7: logo blanco fijo, abajo a la derecha pero dentro de la zona segura (margen derecho 108 px,
+         por encima de la banda inferior que tapan TikTok/Reels/Shorts). Sombra suave por si la libreta o una
+         mano clara pasan debajo. */
+      #logo { z-index: 7; position: absolute; right: 108px; top: 1370px; width: 260px; height: auto;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
     </style>
   </head>
   <body>
@@ -100,7 +101,7 @@
       <div id="sombra"></div>
       <video id="persona" class="clip capa" src="./assets/persona_cuerpo_alfa.webm" data-start="0" data-duration="33.27" data-track-index="4" muted playsinline></video>
       <audio id="voz" src="./assets/voz_cuerpo.m4a" data-start="0" data-duration="33.27" data-track-index="5"></audio>
-      <div id="logo" class="clip" data-start="0" data-duration="33.27" data-track-index="7">fundamentos<b>.ai</b></div>
+      <img id="logo" class="clip" src="./assets/logo_blanco.png" data-start="0" data-duration="33.27" data-track-index="7" alt="" />
     </div>
     <script>
       window.__timelines = window.__timelines || {};

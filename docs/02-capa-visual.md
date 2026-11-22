@@ -254,3 +254,12 @@ del contenedor escalado).
 El primer render tenía persona y título entrando desde opacidad 0, y al no estar la persona se veía la tarjeta
 (un fotograma desenfocado del TikTok con una chamarra). Ahora todo está visible desde el frame 0, con solo un
 leve asentamiento, y la tarjeta es un bokeh cálido en CSS, sin figuras. `img/capa-visual/v3_frame0_miniatura.jpg`.
+
+## Logo (22 nov): blanco, abajo a la derecha, dentro de la zona segura
+Assets del usuario: `Fundamentos Sin BACKGROUND.png` (negro) y `logo_white_b3xyxt.png` (blanco), 840x200 con alfa,
+copiados a `composicion/assets/logo_{negro,blanco}.png`. Medido en el render final: la esquina inferior derecha
+(mesa) tiene luminancia 40/255 estable; la libreta, justo encima, 157. El negro desaparece sobre la mesa y solo se
+lee sobre la libreta, que se mueve; el blanco se lee en la esquina todo el video. **Elegido: blanco**.
+Posición: no en la esquina literal, porque los últimos ~480 px de altura y los ~130 px de la derecha los tapan los
+botones y el texto de TikTok, Reels y Shorts. Va a `right: 108px; top: 1370px` (260 px de ancho), con sombra suave.
+El píldora "fundamentos.ai" de arriba a la izquierda se quitó. Imagen: `img/capa-visual/logo_analisis_esquina_y_zonas_seguras.jpg`.

@@ -42,8 +42,13 @@
 
       /* Capa 2: tarjeta cálida + sombra; capa 3: persona (WebM con alfa, chromakey por zonas + despill) */
       #tarjeta { z-index: 3; position: absolute; left: 0; right: 0; top: var(--tarjeta-y); bottom: 0; border-radius: 56px 56px 0 0; overflow: hidden;
-        background-image: url("./assets/fondo_broll.png"); background-size: 1080px 1920px; background-position: 0 calc(-1 * var(--tarjeta-y));
-        filter: brightness(1.35) saturate(1.15); box-shadow: 0 -20px 60px rgba(0,0,0,.25); }
+        background:
+          radial-gradient(140px 140px at 18% 35%, rgba(255,190,120,.55) 0%, rgba(255,190,120,0) 70%),
+          radial-gradient(110px 110px at 82% 25%, rgba(255,160,90,.5) 0%, rgba(255,160,90,0) 70%),
+          radial-gradient(180px 180px at 60% 70%, rgba(255,210,150,.35) 0%, rgba(255,210,150,0) 70%),
+          radial-gradient(90px 90px at 35% 80%, rgba(255,140,80,.45) 0%, rgba(255,140,80,0) 70%),
+          linear-gradient(180deg, #3a2a22 0%, #2a1d18 100%);
+        box-shadow: 0 -20px 60px rgba(0,0,0,.25); }
       #sombra { z-index: 4; position: absolute; left: 140px; right: 140px; top: 1500px; height: 420px;
         background: radial-gradient(60% 50% at 50% 60%, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 70%); }
       #persona { z-index: 5; object-fit: cover; filter: saturate(1.3) contrast(1.06) brightness(1.02); }
@@ -101,9 +106,10 @@
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       const entra = (sel, t, dur = 0.35) => tl.fromTo(sel, { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: "power3.out" }, t);
-      tl.fromTo("#persona", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 0);
-      tl.fromTo("#titulo h1", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.1);
-      tl.fromTo("#titulo .aster", { rotate: -90, opacity: 0 }, { rotate: 0, opacity: 1, duration: 0.6, ease: "back.out(2)" }, 0.3);
+      // Frame 0 es la miniatura en redes: persona y título ya visibles; solo un leve asentamiento.
+      tl.fromTo("#persona", { y: 12 }, { y: 0, duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo("#titulo h1", { y: 14, scale: 0.98 }, { y: 0, scale: 1, duration: 0.4, ease: "power3.out" }, 0);
+      tl.fromTo("#titulo .aster", { rotate: -45 }, { rotate: 0, duration: 0.6, ease: "back.out(2)" }, 0);
       entra("#v-robots", 3.6); entra("#v-aula", 7.6);
       // contadores: entran y cuentan hasta su valor
       const cuenta = (sel, t, hasta, fmt) => {

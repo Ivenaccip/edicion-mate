@@ -235,3 +235,22 @@ Esto también explica por qué la v2 (sin b-roll) rindió bien y la v3 no.
 2. **Variante de preview a 576x1024**: `pipeline/visual/hacer_preview.sh` genera `composicion/preview/` con el
    canvas declarado a 576x1024 (`zoom: 0.5333` sobre el root, sin tocar los px del diseño) y assets a 576
    (`composicion/assets/576/`: persona WebM con alfa reescalada, b-roll a 576 o 684x384).
+
+### Tiempos medidos (22 nov, 4 núcleos, 33.3 s de composición)
+| Render | Tiempo | Factor |
+|---|---|---|
+| 1080x1920, Chromium del contenedor (modo captura de pantalla) | 1294 s | 1× |
+| 1080x1920, Chrome propio de Hyperframes (`beginFrame`) | **221 s** | 5.9× más rápido |
+| 576x1024 declarado + assets a 576, Chrome propio | **86 s** | 15× más rápido |
+
+Regla: rondas del auditor con `composicion/preview/` (86 s); 1080 solo para el render final. Para activar el
+Chrome propio hay que quitar `PUPPETEER_EXECUTABLE_PATH`, `CHROME_PATH` y `CHROME_BIN` del entorno antes de
+`npx hyperframes render` (el contenedor las fija al Chromium de Playwright, que no tiene `beginFrame`).
+Detalle del preview: los `<video>` a pantalla completa necesitan tamaño explícito en px (si no, toman el
+intrínseco del asset a 576 y salen a la mitad) y la sub-composición no se escala por separado (ya vive dentro
+del contenedor escalado).
+
+### Frame 0 es la miniatura
+El primer render tenía persona y título entrando desde opacidad 0, y al no estar la persona se veía la tarjeta
+(un fotograma desenfocado del TikTok con una chamarra). Ahora todo está visible desde el frame 0, con solo un
+leve asentamiento, y la tarjeta es un bokeh cálido en CSS, sin figuras. `img/capa-visual/v3_frame0_miniatura.jpg`.

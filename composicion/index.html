@@ -22,23 +22,23 @@
       #fondo { z-index: 0; background: radial-gradient(120% 80% at 50% 20%, #fbf8f2 0%, var(--crema) 55%, #e4dccf 100%); }
 
       /* Capa 1: b-roll. Dos formas: "ventana" (clips horizontales, tarjeta flotante 16:9 arriba) y "lleno" (clips verticales a pantalla completa). */
-      .ventana { position: absolute; left: 108px; top: 300px; width: 864px; height: 486px; border-radius: 28px; overflow: hidden;
+      .ventana { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; object-fit: cover;
         box-shadow: 0 30px 80px rgba(0,0,0,.28); background: #000; z-index: 1; }
-      .ventana video { width: 864px; height: 486px; object-fit: cover; display: block; }
       .lleno { z-index: 1; object-fit: cover; }
 
       /* Título de apertura (plano 1-2), sobre fondo abstracto hecho en CSS */
-      #titulo { z-index: 1; position: absolute; left: 108px; top: 300px; width: 864px; height: 486px; border-radius: 28px; overflow: hidden;
+      #titulo { z-index: 1; position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; overflow: hidden;
         background: radial-gradient(60% 80% at 20% 30%, #ff9a5c 0%, var(--naranja) 30%, #1b2a4a 70%, #0d1424 100%);
         box-shadow: 0 30px 80px rgba(0,0,0,.28); color: #fff; }
-      #titulo h1 { position: absolute; left: 48px; right: 48px; top: 120px; font-size: 104px; line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase; }
+      #titulo h1 { position: absolute; left: 48px; right: 48px; top: 100px; font-size: 96px; line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase; }
       #titulo .aster { position: absolute; right: 48px; bottom: 36px; width: 120px; height: 120px; }
 
       /* Contadores sobre el b-roll (planos 6, 8, 9, 10) */
-      .contador { z-index: 2; position: absolute; left: 108px; width: 864px; top: 820px; text-align: left; color: var(--tinta); opacity: 0; }
+      /* Contadores: siempre en la franja superior (y 330-560), libre de la persona, en blanco con sombra sobre cualquier b-roll */
+      .contador { z-index: 2; position: absolute; left: 180px; width: 760px; top: 330px; text-align: left; color: #fff; opacity: 0;
+        text-shadow: 0 4px 18px rgba(0,0,0,.6), 0 0 2px rgba(0,0,0,.8); }
       .contador b { display: block; font-size: 150px; line-height: 1; letter-spacing: -0.04em; }
-      .contador span { display: block; font-size: 48px; font-weight: 700; margin-top: 10px; color: #4a4a52; }
-      .contador.claro { color: #fff; } .contador.claro span { color: #d9d9e0; }
+      .contador span { display: block; font-size: 44px; font-weight: 700; margin-top: 10px; color: #f0f0f4; }
 
       /* Capa 2: tarjeta cálida + sombra; capa 3: persona (WebM con alfa, chromakey por zonas + despill) */
       #tarjeta { z-index: 3; position: absolute; left: 0; right: 0; top: var(--tarjeta-y); bottom: 0; border-radius: 56px 56px 0 0; overflow: hidden;
@@ -52,7 +52,7 @@
       #siguenos { z-index: 6; position: absolute; inset: 0; }
 
       /* Capa 7: logo provisional, zona segura */
-      #logo { z-index: 7; position: absolute; left: 108px; top: 220px; height: 76px; padding: 0 26px; border-radius: 38px;
+      #logo { z-index: 7; position: absolute; left: 140px; top: 150px; height: 76px; padding: 0 26px; border-radius: 38px;
         background: rgba(27,27,31,.9); color: #fff; font-weight: 700; font-size: 34px; line-height: 76px; }
       #logo b { color: var(--naranja); }
     </style>
@@ -68,13 +68,9 @@
       </div>
 
       <!-- Planos 3-4 (3.6-7.6): robots, "mundo de la IA" -->
-      <div class="ventana clip" id="v-robots" data-start="3.6" data-duration="4" data-track-index="1">
-        <video src="./assets/b1_robots_720.mp4" data-start="3.6" data-duration="4" muted playsinline></video>
-      </div>
+      <video class="ventana clip" id="v-robots" src="./assets/b1_robots_720.mp4" data-start="3.6" data-duration="4" data-track-index="1" muted playsinline></video>
       <!-- Planos 5-6 (7.6-11.6): clase, "hemos capacitado a más de 50,000 personas" -->
-      <div class="ventana clip" id="v-aula" data-start="7.6" data-duration="4" data-track-index="1">
-        <video src="./assets/b4_aula_720.mp4" data-start="7.6" data-duration="4" muted playsinline></video>
-      </div>
+      <video class="ventana clip" id="v-aula" src="./assets/b4_aula_720.mp4" data-start="7.6" data-duration="4" data-track-index="1" muted playsinline></video>
       <div class="contador clip" id="c-personas" data-start="9.6" data-duration="2" data-track-index="2"><b>+50,000</b><span>personas capacitadas</span></div>
 
       <!-- Planos 7-8 (11.6-15.6): globo, "en toda Latinoamérica… más de 70 empresas" -->
@@ -93,7 +89,7 @@
       <video class="lleno clip" id="v-publico2" src="./assets/b2_publico_1080x1920.mp4" data-start="19.6" data-duration="2.2" data-media-start="4.5" data-track-index="1" muted playsinline></video>
 
       <!-- Plano 12 (21.8-27.1): sin b-roll, persona a cámara. Planos 14-16 (27.1-33.27): Síguenos -->
-      <div id="siguenos" class="clip" data-composition-src="compositions/siguenos.html" data-start="27.1" data-duration="6.17" data-track-index="6"></div>
+      <div id="siguenos" class="clip" data-composition-id="siguenos" data-composition-src="compositions/siguenos.html" data-start="27.1" data-duration="6.17" data-track-index="6"></div>
 
       <div id="tarjeta" class="clip" data-start="0" data-duration="33.27" data-track-index="3"></div>
       <div id="sombra"></div>

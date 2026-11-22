@@ -10,22 +10,22 @@
       html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
       #siguenos { position: relative; width: 1080px; height: 1920px; font-family: var(--font); }
       /* Tarjeta de perfil: avatar + handle + botón. Centrada en el tercio superior, zona segura 108 px. */
-      #tarjeta { position: absolute; left: 108px; top: 300px; width: 864px; height: 560px; border-radius: 48px;
+      #tarjeta { position: absolute; left: 140px; top: 240px; width: 800px; height: 490px; border-radius: 48px;
         background: rgba(27,27,31,.92); box-shadow: 0 30px 80px rgba(0,0,0,.28); color: #fff; }
-      #avatar { position: absolute; left: 50%; top: 56px; width: 180px; height: 180px; margin-left: -90px; border-radius: 50%;
+      #avatar { position: absolute; left: 50%; top: 36px; width: 150px; height: 150px; margin-left: -75px; border-radius: 50%;
         background: radial-gradient(circle at 35% 30%, #ffb27a 0%, var(--naranja) 55%, #8d3f1f 100%); border: 8px solid #fff; }
-      #avatar b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 84px; color: #fff; }
-      #handle { position: absolute; left: 0; right: 0; top: 262px; text-align: center; font-size: 56px; font-weight: 800; letter-spacing: -0.01em; }
+      #avatar b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; color: #fff; }
+      #handle { position: absolute; left: 0; right: 0; top: 210px; text-align: center; font-size: 56px; font-weight: 800; letter-spacing: -0.01em; }
       #handle i { font-style: normal; color: var(--naranja); }
-      #sub { position: absolute; left: 0; right: 0; top: 334px; text-align: center; font-size: 34px; color: #b8bcc4; font-weight: 600; }
-      #boton { position: absolute; left: 50%; top: 410px; width: 420px; height: 104px; margin-left: -210px; border-radius: 52px;
+      #sub { position: absolute; left: 0; right: 0; top: 282px; text-align: center; font-size: 34px; color: #b8bcc4; font-weight: 600; }
+      #boton { position: absolute; left: 50%; top: 350px; width: 420px; height: 104px; margin-left: -210px; border-radius: 52px;
         background: var(--azul); color: #fff; font-size: 44px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 18px;
         box-shadow: 0 16px 40px rgba(47,143,255,.45); }
       #boton .mas { font-size: 56px; line-height: 1; margin-top: -6px; }
       #boton.listo { background: #22c55e; box-shadow: 0 16px 40px rgba(34,197,94,.45); }
       #cursor { position: absolute; left: 640px; top: 900px; width: 70px; height: 70px; opacity: 0; }
       #cursor svg { width: 70px; height: 70px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
-      #onda { position: absolute; left: 50%; top: 462px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; border: 6px solid #fff; opacity: 0; }
+      #onda { position: absolute; left: 50%; top: 402px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; border: 6px solid #fff; opacity: 0; }
     </style>
   </head>
   <body>
@@ -47,7 +47,7 @@
       // 0.0 la tarjeta entra; 0.9 el cursor viaja al botón; 1.6 clic: el botón se hunde, cambia a "Siguiendo" en verde, onda.
       tl.fromTo("#tarjeta", { opacity: 0, y: 60, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, 0);
       tl.fromTo("#cursor", { opacity: 0, x: 0, y: 0 }, { opacity: 1, duration: 0.2 }, 0.9);
-      tl.to("#cursor", { x: -120, y: -380, duration: 0.6, ease: "power2.inOut" }, 1.0);
+      tl.to("#cursor", { x: -120, y: -330, duration: 0.6, ease: "power2.inOut" }, 1.0);
       tl.to("#boton", { scale: 0.92, duration: 0.08, ease: "power1.in" }, 1.6);
       tl.to("#boton", { scale: 1.04, duration: 0.18, ease: "back.out(3)" }, 1.68);
       tl.to("#boton", { scale: 1, duration: 0.15 }, 1.86);

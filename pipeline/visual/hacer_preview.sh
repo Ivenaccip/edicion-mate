@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../../composicion"
 rm -rf preview && mkdir -p preview/compositions preview/vendor preview/assets preview/out
 cp vendor/* preview/vendor/
 cp hyperframes.json preview/ && sed 's/"name": *"composicion"/"name": "composicion-preview"/' meta.json > preview/meta.json && cp package.json preview/
-cp assets/576/* preview/assets/
+cp assets/576/* preview/assets/ && cp assets/logo_*.png preview/assets/ && mkdir -p preview/assets/sfx && cp assets/sfx/*.m4a preview/assets/sfx/
 # index: canvas 576x1024, el contenido sigue en px de 1080 y se escala con zoom
 python3 - <<'PY'
 import re

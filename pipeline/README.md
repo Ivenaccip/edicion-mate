@@ -93,3 +93,46 @@ hueco entero.
 ```bash
 python pipeline/limpiar_audio.py cuerpo_audio.wav cuerpo.palabras.json limpio.wav --video cuerpo.mp4 cuerpo_limpio.mp4
 ```
+
+## Viento en el micrófono (21 nov 2026)
+El "soplido" que oía el usuario **no eran las respiraciones**: eran golpes de aire al micrófono.
+Diagnóstico por espectro (tramos de artefacto vs voz limpia de 14.7 s):
+- Pops: **+15 dB entre 20–100 Hz y +12 dB entre 100–150 Hz** sobre la voz. Es un retumbe de banda
+  ancha, no una resonancia fina. 83 ráfagas en 33 s con exceso > 10 dB; el de-pop v1 atrapaba 13.
+- Respiraciones: 15 dB **por debajo** de la voz en casi todo el espectro; solo +1..+4 dB en 3–8 kHz.
+
+Un contacto de audio del usuario recomendó (nota de voz, transcrita en `prototipos/editor-pausas/salida/nota3_audio_consejos.palabras.json`):
+1. **Dead cat** (paraviento de pelo) en el micrófono al grabar. Es la solución de verdad: evita el
+   problema en origen. Recomendación que pasa al checklist de grabación.
+2. En software, un filtro notch sobre los picos de resonancia. Como el pico medido es una banda
+   ancha de graves, se implementó como **filtro de graves dinámico** (capa 2 de `limpiar_audio.py`):
+   por cada 10 ms se mide cuánto sobresalen los graves (<150 Hz) sobre los medios (150–2000 Hz)
+   respecto a lo típico de la voz, y con esa medida se mezcla de forma continua una versión
+   filtrada a 200 Hz. Un notch fijo habría tocado la fundamental de la voz (100–150 Hz) siempre.
+
+Resultado v3 en IMG_7889: graves en los golpes −5..−13 dB, nivel total de voz casi intacto
+(p. ej. "meses" 9.4 s: graves −33.2 → −45.9 dB, voz −28.7 → −32.0 dB).
+
+## Fundido de 0.1 s en cada empalme (regla del usuario)
+`cortar_video.py --fade 0.1` (por defecto): fundido a negro de salida en los últimos 100 ms del tramo
+anterior y de entrada en los primeros 100 ms del siguiente, en video y audio con los mismos tiempos.
+Solo en empalmes internos; no al inicio ni al final. Se omite en tramos más cortos que 0.2 s.
+`--fade 0` = corte seco. Imagen: `docs/img/fase1_fade_0.1s_empalme.png`.
+
+## Separar la voz del viento con un modelo: `separar_voz.py` (21 nov 2026)
+Pregunta del usuario: "¿podrías separar el viento?". Se probaron dos separadores sobre el audio de IMG_7889:
+
+| Método | Graves en golpe "meses" | Voz limpia (12–13 s) | Veredicto |
+|---|---|---|---|
+| noisereduce (sustracción espectral no estacionaria) | −31.4 → −39.4 dB | **−28.9 → −41.7 dB** | Descartado: se come 13 dB de voz |
+| **DeepFilterNet3** (red de mejora de voz, CPU) | −31.4 → −38.7 dB | −28.9 → −29.1 dB | Separa viento sin tocar la voz. 33 s de audio en 0.8 s |
+| filtro dinámico v4 (sin modelo) | −31.4 → −47.4 dB | −28.9 → −29.3 dB | Más graves fuera, pero solo graves |
+| **DeepFilterNet3 + filtro v4** | ver tabla en consola | ≈ intacta | Candidato a estándar |
+
+DeepFilterNet actúa en todo el espectro (también baja respiraciones 1 dB y fondo 1.2 dB); el filtro
+dinámico solo en graves. Juntos cubren el viento completo.
+
+Infra: torch rompe el entorno principal (baja numpy), por eso va en `.venv-df`. Los pesos oficiales
+están en GitHub, que el proxy del entorno bloquea aunque el host esté permitido (GitHub va por otro
+canal); se usa la copia Apache-2.0 de Hugging Face `fal/DeepFilterNet3` convertida a checkpoint.
+Hosts añadidos: download.pytorch.org, download-r2.pytorch.org.

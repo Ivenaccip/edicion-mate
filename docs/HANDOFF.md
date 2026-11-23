@@ -130,9 +130,19 @@ viendo el frame), ninguna palabra truncada en el diff de re-transcripción, cero
 de AssemblyAI llegan hasta 170 ms tarde. Entregado a −18 dB. Falta el veredicto de oído del usuario y
 el **timestamp exacto** del "soplido" que oye, para saber si es respiración o pop.
 
+## Audio: estado al 21 nov
+- El "soplido" eran golpes de aire al mic (viento), no respiraciones. `limpiar_audio.py` v3 tiene
+  de-viento dinámico (ver `pipeline/README.md`). Consejo externo incorporado: **dead cat al grabar**.
+- Regla nueva: **fundido 0.1 s** de salida/entrada en cada empalme (video y audio), implementada en
+  `cortar_video.py --fade`.
+
+- **Separación por modelo**: `pipeline/separar_voz.py` (DeepFilterNet3, entorno `.venv-df`). Quita
+  viento en todo el espectro sin tocar la voz. Candidato a estándar: DeepFilterNet3 → `limpiar_audio.py`.
+
 ## Pendientes del lado del usuario
 Nuevos:
-- Timestamp del soplido que oye en IMG_7889_916_limpio_v2.mp4.
+- Veredicto de oído entre v4 (solo filtro), DFN (solo modelo) y DFN + filtro.
+- Conseguir un dead cat para el micrófono antes del próximo raw.
 - **Video corto de prueba** (20–30 s, celular, con pausas largas a propósito como la nota 2). Desbloquea
   el paso 1.
 - **Audio con muletillas reales** ("eh", "este", "o sea") para cerrar la prueba de `disfluencies`.

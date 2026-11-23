@@ -7,8 +7,13 @@ habla y dónde no.
 
 Tres capas, todas suaves y reversibles (los parámetros están arriba):
   1. Filtro paso-alto global a 85 Hz: quita el retumbe de aire sin tocar la voz.
-  2. De-pop: en cada ráfaga de graves (<150 Hz dominando) dentro de una palabra, se mezcla
-     durante ~30 ms una versión filtrada a 220 Hz. La consonante se oye, el golpe no.
+  2. De-viento (antes "de-pop"): el aire que golpea el micrófono (P, B, M, o soplar al hablar)
+     mete un retumbe de 20–150 Hz que sobresale +10..+20 dB sobre la voz. Medido en IMG_7889:
+     83 ráfagas en 33 s. Se calcula por frame cuánto sobresalen los graves respecto a los
+     medios (150–2000 Hz) frente a lo típico de la voz, y con esa medida se mezcla de forma
+     CONTINUA una versión filtrada a POP_HP_HZ: 0 % cuando no hay viento, 100 % cuando el
+     exceso pasa de VIENTO_DB_MAX. Es un filtro de graves dinámico, no un notch fijo: un
+     notch fijo tocaría la fundamental de la voz (100–150 Hz) todo el tiempo.
   3. Respiraciones: dentro de cada hueco entre palabras (AssemblyAI, con margen) se clasifica
      cada frame de 10 ms por la señal: VOZ = tiene armónicos (planitud espectral baja);
      RESPIRACIÓN = ruido sin tono (planitud alta o muchos cruces por cero) por encima del
@@ -23,7 +28,7 @@ import numpy as np, soundfile as sf
 from scipy.signal import butter, sosfilt, sosfiltfilt
 
 HP_GLOBAL_HZ = 85
-POP_HP_HZ = 220; POP_RATIO = 0.7; POP_MARGEN_MS = 15
+POP_HP_HZ = 200; VIENTO_DB_MIN = 5; VIENTO_DB_MAX = 12; VIENTO_SUAVIZADO_MS = 15
 RESP_DB = -12.0; RESP_MIN_MS = 60; RESP_SOBRE_PISO_DB = 4; RESP_FADE_MS = 20; RESP_HUECO_MIN_MS = 100
 VOZ_PLANITUD_MAX = 0.06; RESP_PLANITUD_MIN = 0.10; RESP_ZCR_MIN = 0.12; DIST_VOZ_MS = 60; HUECO_MARGEN_MS = 200
 RESP_EXT_MS = 40   # extender la zona atenuada a cada lado (sigue a >= 20 ms de la voz) para que el fundido no se coma el núcleo
@@ -45,6 +50,9 @@ def main():
     ap.add_argument("audio"); ap.add_argument("palabras"); ap.add_argument("salida")
     ap.add_argument("--video", nargs=2, metavar=("IN", "OUT"), help="remuxear el audio limpio en este video")
     ap.add_argument("--resp-db", type=float, default=RESP_DB, help="atenuación de respiraciones en dB (por defecto -12)")
+    ap.add_argument("--viento-hz", type=float, default=POP_HP_HZ, help="corte del filtro de graves dinámico (por defecto 200)")
+    ap.add_argument("--viento-db", type=float, nargs=2, default=[VIENTO_DB_MIN, VIENTO_DB_MAX], metavar=("MIN", "MAX"), help="exceso de graves (dB) donde el filtro empieza y donde es total (por defecto 5 12)")
+    ap.add_argument("--hp-hz", type=float, default=HP_GLOBAL_HZ, help="paso-alto global en Hz (por defecto 85)")
     a = ap.parse_args()
     x, sr = sf.read(a.audio, dtype="float32")
     if x.ndim > 1: x = x.mean(axis=1)
@@ -54,21 +62,32 @@ def main():
     nivel_voz, piso = np.percentile(db, 90), np.percentile(db, 5)
 
     # 1) paso-alto global
-    y = sosfiltfilt(butter(2, HP_GLOBAL_HZ, "highpass", fs=sr, output="sos"), x).astype(np.float32)
+    y = sosfiltfilt(butter(2, a.hp_hz, "highpass", fs=sr, output="sos"), x).astype(np.float32)
 
-    # 2) pops: ráfagas donde los graves dominan, dentro de palabras
+    # 2) de-viento: filtro de graves dinámico guiado por el exceso de graves frente a la voz
     low = sosfilt(butter(4, 150, "lowpass", fs=sr, output="sos"), x)
-    rl = np.array([np.sqrt(np.mean(low[i*n:(i+1)*n]**2)) for i in range(nf)]); ratio = rl / np.maximum(rms, 1e-9)
-    pops, i = [], 0
+    mid = sosfilt(butter(4, [150, 2000], "bandpass", fs=sr, output="sos"), x)
+    rl = np.array([np.sqrt(np.mean(low[i*n:(i+1)*n]**2)) for i in range(nf)])
+    rm = np.array([np.sqrt(np.mean(mid[i*n:(i+1)*n]**2)) for i in range(nf)])
+    rel = 20*np.log10((rl + 1e-9) / (rm + 1e-9))
+    ref = np.median(rel[db > np.percentile(db, 60)])              # graves/medios típico de la voz
+    exceso = rel - ref
+    vmin, vmax = a.viento_db
+    g = np.clip((exceso - vmin) / (vmax - vmin), 0, 1)
+    g[db < piso + 6] = 0                                          # en silencio no hay nada que filtrar
+    # a muestras, con suavizado (ataque/relajación) para que el filtro entre y salga sin clics
+    gm = np.repeat(g, n)[:len(y)]; gm = np.pad(gm, (0, len(y) - len(gm)), mode="edge")
+    ks = int(sr * VIENTO_SUAVIZADO_MS / 1000); kern = np.ones(ks) / ks
+    gm = np.convolve(gm, kern, mode="same").astype(np.float32)
+    y_hp = sosfiltfilt(butter(4, a.viento_hz, "highpass", fs=sr, output="sos"), y).astype(np.float32)
+    y = y * (1 - gm) + y_hp * gm
+    pops, i = [], 0                                               # para el reporte: tramos con g > 0.5
     while i < nf:
-        if ratio[i] > POP_RATIO and db[i] > nivel_voz - 12:
+        if g[i] > 0.5:
             j = i
-            while j < nf and ratio[j] > 0.5: j += 1
-            pops.append((i*n - int(sr*POP_MARGEN_MS/1000), j*n + int(sr*POP_MARGEN_MS/1000))); i = j
+            while j < nf and g[j] > 0.5: j += 1
+            pops.append((i * n, j * n)); i = j
         else: i += 1
-    y_pop = sosfiltfilt(butter(2, POP_HP_HZ, "highpass", fs=sr, output="sos"), y).astype(np.float32)
-    mp = rampa_mask(len(y), pops, int(sr*0.005))
-    y = y * (1 - mp) + y_pop * mp
 
     # 3) respiraciones: clasificar frames por la señal dentro de los huecos entre palabras
     plan = np.zeros(nf); zcr = np.zeros(nf); win = np.hanning(n)
@@ -104,11 +123,11 @@ def main():
 
     sf.write(a.salida, y, sr)
     rep = {"entrada": a.audio, "salida": a.salida, "nivel_voz_dbfs": round(float(nivel_voz),1), "piso_dbfs": round(float(piso),1),
-           "paso_alto_hz": HP_GLOBAL_HZ,
+           "paso_alto_hz": a.hp_hz, "viento_hp_hz": a.viento_hz, "viento_umbral_db": list(a.viento_db),
            "pops": [{"ini": round(p0/sr,3), "fin": round(p1/sr,3)} for p0, p1 in pops],
            "respiraciones": [{"ini": round(r[0]/sr,3), "fin": round(r[1]/sr,3), "pico_dbfs": round(r[2],1), "entre": [r[3], r[4]], "gan_db": a.resp_db} for r in resp]}
     Path(a.salida).with_suffix(".limpieza.json").write_text(json.dumps(rep, ensure_ascii=False, indent=1))
-    print(f"pops tratados: {len(pops)}, respiraciones atenuadas {a.resp_db} dB: {len(resp)}  -> {a.salida}")
+    print(f"ráfagas de viento filtradas: {len(pops)}, respiraciones atenuadas {a.resp_db} dB: {len(resp)}  -> {a.salida}")
     if a.video:
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.video[0], "-i", a.salida, "-map", "0:v", "-map", "1:a",
                         "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-shortest", a.video[1]], check=True)

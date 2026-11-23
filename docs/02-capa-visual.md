@@ -263,3 +263,12 @@ lee sobre la libreta, que se mueve; el blanco se lee en la esquina todo el video
 Posición: no en la esquina literal, porque los últimos ~480 px de altura y los ~130 px de la derecha los tapan los
 botones y el texto de TikTok, Reels y Shorts. Primero se puso a `top: 1370px` (dentro de la zona segura); el usuario lo quiere abajo, junto al celular: queda a `right: 108px; top: 1786px` (260 px de ancho), con sombra suave, asumiendo que la interfaz de la plataforma puede taparlo.
 El píldora "fundamentos.ai" de arriba a la izquierda se quitó. Imagen: `img/capa-visual/logo_analisis_esquina_y_zonas_seguras.jpg`.
+
+## Inicio del cuerpo movido a 9.30 s (23 nov)
+El usuario oyó una tos antes de "Y estamos de regreso". Medido en el raw: eventos sonoros en 8.84–9.04 s
+(−22.5 dBFS, la tos) y la frase a partir de 9.56 s (−7.7 dBFS). AssemblyAI había etiquetado la tos como la
+palabra "Y" (8.93–9.10), por eso el corte anterior (8.765) la dejaba dentro. Nuevo corte en 9.30 s, en el valle
+entre ambos (regla del proyecto: cortar por energía, no por timestamp de palabra). EDL actualizado en
+`pipeline/salida/IMG_7889.edl.json`; cuerpo de 32.742 s. Todos los tiempos de la composición se corrieron
+0.535 s (`data-start`, listas de GSAP y SFX). Lección para el editor (paso 2): una "palabra" de ≤ 2 letras aislada,
+15 dB por debajo de la frase siguiente, es sospechosa de ruido no verbal.

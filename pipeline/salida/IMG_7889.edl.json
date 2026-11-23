@@ -4,7 +4,7 @@
  "sr": 44100,
  "nivel_voz_dbfs": -21.4,
  "duracion_original_s": 44.608,
- "duracion_editada_s": 33.293,
+ "duracion_editada_s": 32.742,
  "quitado_s": 11.315,
  "pausas_encontradas": 7,
  "pausas_acortadas": 2,
@@ -25,11 +25,12 @@
    "accion": "quitar retoma (primer intento fallido hasta 'ok.')",
    "quitar": [
     0.0,
-    8.765
+    9.3
    ],
-   "quitado_ms": 8765,
+   "quitado_ms": 9300,
    "antes": "",
-   "despues": "Y"
+   "despues": "Y",
+   "nota": "Inicio movido de 8.765 a 9.30 s (23 nov): AssemblyAI etiquetó como \"Y\" una tos en 8.84-9.04; la frase arranca en 9.56. Corte en el valle de energía entre ambos."
   },
   {
    "pausa": [

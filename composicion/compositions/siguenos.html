@@ -5,38 +5,25 @@
     <script src="../vendor/gsap.min.js"></script>
     <style>
       @font-face { font-family: "InterLocal"; src: url("../vendor/Inter-ExtraBold.otf") format("opentype"); font-weight: 400 900; }
-      :root { --crema: #f1ece3; --tinta: #1b1b1f; --azul: #2f8fff; --naranja: #e07b4a; --font: "InterLocal", "DejaVu Sans", sans-serif; }
+      :root { --azul: #2f8fff; --font: "InterLocal", "DejaVu Sans", sans-serif; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
       #siguenos { position: relative; width: 1080px; height: 1920px; font-family: var(--font); }
-      /* Tarjeta de perfil: avatar + handle + botón. Centrada en el tercio superior, zona segura 108 px. */
-      #tarjeta { position: absolute; left: 140px; top: 240px; width: 800px; height: 490px; border-radius: 48px;
-        background: rgba(27,27,31,.92); box-shadow: 0 30px 80px rgba(0,0,0,.28); color: #fff; }
-      #avatar { position: absolute; left: 50%; top: 36px; width: 150px; height: 150px; margin-left: -75px; border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #ffb27a 0%, var(--naranja) 55%, #8d3f1f 100%); border: 8px solid #fff; }
-      #avatar b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; color: #fff; }
-      #handle { position: absolute; left: 0; right: 0; top: 210px; text-align: center; font-size: 56px; font-weight: 800; letter-spacing: -0.01em; }
-      #handle i { font-style: normal; color: var(--naranja); }
-      #sub { position: absolute; left: 0; right: 0; top: 282px; text-align: center; font-size: 34px; color: #b8bcc4; font-weight: 600; }
-      #boton { position: absolute; left: 50%; top: 350px; width: 420px; height: 104px; margin-left: -210px; border-radius: 52px;
-        background: var(--azul); color: #fff; font-size: 44px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 18px;
-        box-shadow: 0 16px 40px rgba(47,143,255,.45); }
-      #boton .mas { font-size: 56px; line-height: 1; margin-top: -6px; }
-      #boton.listo { background: #22c55e; box-shadow: 0 16px 40px rgba(34,197,94,.45); }
-      #cursor { position: absolute; left: 640px; top: 900px; width: 70px; height: 70px; opacity: 0; }
-      #cursor svg { width: 70px; height: 70px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
-      #onda { position: absolute; left: 50%; top: 402px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; border: 6px solid #fff; opacity: 0; }
+      /* Un solo botón, centrado en la franja superior libre */
+      #boton { position: absolute; left: 50%; top: 420px; width: 520px; height: 132px; margin-left: -260px; border-radius: 66px;
+        background: var(--azul); color: #fff; font-size: 56px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 20px;
+        box-shadow: 0 18px 44px rgba(47,143,255,.45); }
+      #boton .mas { font-size: 68px; line-height: 1; margin-top: -6px; }
+      #boton.listo { background: #22c55e; box-shadow: 0 18px 44px rgba(34,197,94,.45); }
+      #cursor { position: absolute; left: 720px; top: 980px; width: 84px; height: 84px; opacity: 0; }
+      #cursor svg { width: 84px; height: 84px; filter: drop-shadow(0 6px 10px rgba(0,0,0,.4)); }
+      #onda { position: absolute; left: 50%; top: 486px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; border: 6px solid #fff; opacity: 0; }
     </style>
   </head>
   <body>
     <div id="siguenos" data-composition-id="siguenos" data-start="0" data-duration="4" data-width="1080" data-height="1920">
-      <div id="tarjeta" class="clip" data-start="0" data-duration="4" data-track-index="0">
-        <div id="avatar"><b>F</b></div>
-        <div id="handle">@fundamentos<i>.ai</i></div>
-        <div id="sub">Inteligencia artificial, en español</div>
-        <div id="boton"><span class="mas">+</span><span class="txt">Síguenos</span></div>
-        <div id="onda"></div>
-      </div>
+      <div id="boton" class="clip" data-start="0" data-duration="4" data-track-index="0"><span class="mas">+</span><span class="txt">Seguir</span></div>
+      <div id="onda"></div>
       <div id="cursor" class="clip" data-start="0" data-duration="4" data-track-index="1">
         <svg viewBox="0 0 24 24"><path d="M4 2l16 9-7 2-3 8z" fill="#fff" stroke="#1b1b1f" stroke-width="1.5" stroke-linejoin="round"/></svg>
       </div>
@@ -44,18 +31,18 @@
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
-      // 0.0 la tarjeta entra; 0.9 el cursor viaja al botón; 1.6 clic: el botón se hunde, cambia a "Siguiendo" en verde, onda.
-      tl.fromTo("#tarjeta", { opacity: 0, y: 60, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "power3.out" }, 0);
-      tl.fromTo("#cursor", { opacity: 0, x: 0, y: 0 }, { opacity: 1, duration: 0.2 }, 0.9);
-      tl.to("#cursor", { x: -120, y: -330, duration: 0.6, ease: "power2.inOut" }, 1.0);
-      tl.to("#boton", { scale: 0.92, duration: 0.08, ease: "power1.in" }, 1.6);
-      tl.to("#boton", { scale: 1.04, duration: 0.18, ease: "back.out(3)" }, 1.68);
-      tl.to("#boton", { scale: 1, duration: 0.15 }, 1.86);
-      tl.set("#boton", { className: "listo" }, 1.68);
-      tl.set("#boton .txt", { textContent: "Siguiendo" }, 1.68);
-      tl.set("#boton .mas", { textContent: "✓" }, 1.68);
-      tl.fromTo("#onda", { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 14, duration: 0.7, ease: "power2.out" }, 1.66);
-      tl.to("#cursor", { opacity: 0, duration: 0.3 }, 2.2);
+      // 0.0 el botón ya está; 0.35 el cursor aparece abajo a la derecha y viaja al botón; 1.3 clic: se hunde, cambia a Siguiendo, onda.
+      tl.fromTo("#boton", { scale: 0.96 }, { scale: 1, duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo("#cursor", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 0.35);
+      tl.to("#cursor", { x: -160, y: -490, duration: 0.8, ease: "power2.inOut" }, 0.4);
+      tl.to("#boton", { scale: 0.92, duration: 0.08, ease: "power1.in" }, 1.3);
+      tl.to("#boton", { scale: 1.04, duration: 0.18, ease: "back.out(3)" }, 1.38);
+      tl.to("#boton", { scale: 1, duration: 0.15 }, 1.56);
+      tl.set("#boton", { className: "listo" }, 1.38);
+      tl.set("#boton .txt", { textContent: "Siguiendo" }, 1.38);
+      tl.set("#boton .mas", { textContent: "✓" }, 1.38);
+      tl.fromTo("#onda", { opacity: 0.9, scale: 1 }, { opacity: 0, scale: 16, duration: 0.7, ease: "power2.out" }, 1.36);
+      tl.to("#cursor", { opacity: 0, duration: 0.3 }, 1.9);
       window.__timelines["siguenos"] = tl;
       tl.seek(0);
     </script>

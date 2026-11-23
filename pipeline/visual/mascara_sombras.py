@@ -34,7 +34,7 @@ def main():
     ap.add_argument("--rotar", choices=["no", "ccw"], default="ccw"); ap.add_argument("--encuadre", choices=["no", "9:16"], default="9:16")
     ap.add_argument("--clave", default="1e7032"); ap.add_argument("--dist-min", type=float, default=0.065); ap.add_argument("--dist-max", type=float, default=0.14)
     ap.add_argument("--fraccion", type=float, default=0.9, help="fracción de frames en que el píxel debe cumplir el criterio")
-    ap.add_argument("--dilatar", type=int, default=10); ap.add_argument("--pluma", type=float, default=4)
+    ap.add_argument("--dilatar", type=int, default=10); ap.add_argument("--pluma", type=float, default=1)
     a = ap.parse_args()
     ku, kv = uv_clave(tuple(int(a.clave[i:i + 2], 16) for i in (0, 2, 4)))
     cap = cv2.VideoCapture(a.raw); n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))

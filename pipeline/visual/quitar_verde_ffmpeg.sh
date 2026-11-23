@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Quita el verde con FFmpeg (método elegido): chromakey por zonas + despill, y escribe
-#   1) WebM VP9 con alfa a 1080x1920 (para Hyperframes)
+#   1) WebM VP9 con alfa a 1080x1920 (para Hyperframes), con borde erosionado 1 px y plumado 1.1 px
 #   2) MP4 576x1024 compuesto sobre un fondo, con el audio del raw (preview)
 # La llave usa dos tolerancias: 0.08 en general y 0.13 dentro de la máscara de sombras
 # (pipeline/visual/mascara_sombras.py), unidas con maskedmerge. Sin máscara, usa 0.08 en todo.
@@ -9,7 +9,10 @@ set -euo pipefail
 RAW=$1; INI=$2; DUR=$3; FONDO=$4; OUT=$5; MASC=${6:-}
 CLAVE=0x1e7032; SIM=0.085; SIM_SOMBRA=0.13
 PREP="transpose=2,crop=iw:iw*16/9,scale=1080:1920,format=rgba"
-DESPILL="despill=type=green:mix=0.5:expand=0,format=rgba"
+# Borde: el chromakey con blend=0 deja el alfa binario (escalera y filo oscuro). Se erosiona 1 px (quita el filo de
+# píxeles mezclados) y se pluma con gblur de 1.1 px para que el borde se integre con cualquier fondo.
+BORDE="split[c][a];[a]alphaextract,erosion,gblur=sigma=1.1[a2];[c][a2]alphamerge"
+DESPILL="despill=type=green:mix=0.5:expand=0,format=rgba,${BORDE},format=rgba"
 if [ -n "$MASC" ]; then
   KEY="[0:v]${PREP},split=2[a][b];[a]chromakey=color=${CLAVE}:similarity=${SIM}:blend=0[ka];[b]chromakey=color=${CLAVE}:similarity=${SIM_SOMBRA}:blend=0[kb];[2:v]scale=1080:1920,format=rgba[m];[ka][kb][m]maskedmerge,${DESPILL}[p]"
   EXTRA=(-i "$MASC")

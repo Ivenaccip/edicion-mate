@@ -272,3 +272,10 @@ entre ambos (regla del proyecto: cortar por energía, no por timestamp de palabr
 `pipeline/salida/IMG_7889.edl.json`; cuerpo de 32.742 s. Todos los tiempos de la composición se corrieron
 0.535 s (`data-start`, listas de GSAP y SFX). Lección para el editor (paso 2): una "palabra" de ≤ 2 letras aislada,
 15 dB por debajo de la frase siguiente, es sospechosa de ruido no verbal.
+
+## Primera corrida del comando único (23 nov 2026)
+`python pipeline/editar.py IMG_7889.MP4 --rotar ccw --hasta visual`, 4 núcleos: cortes 576 y 1080 (42 s y 125 s),
+separación de voz + limpieza (213 ráfagas de viento filtradas, 7 respiraciones a −18 dB), remapeo de 96 palabras al
+cuerpo, llave sobre `cuerpo_1080.mp4`, persona a 576, preview 576 con Hyperframes y auditor de llave: APROBADO.
+Total ≈ 8 min (312 s hasta la llave + 176 s desde la persona 576 hasta el preview). El audio de la composición ya
+es `cuerpo_limpio.wav`, no el del raw.

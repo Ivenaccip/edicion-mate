@@ -63,3 +63,25 @@ Los tiempos por palabra tienen error de hasta ±170 ms: sirven para captions, no
 - Detector de retomas automático (hoy la retoma se marcó a mano con el transcript).
 - Render final con audio estéreo.
 - Exportador OTIO/EDL con marcadores para revisión manual en DaVinci (opcional).
+
+## Integración con la capa visual (23 nov 2026)
+Las dos capas viven en el mismo árbol: `pipeline/` (cortes y audio) y `pipeline/visual/` + `composicion/` (visual).
+Comando único: `python pipeline/editar.py raw.mp4 --rotar ccw --hasta visual|final` (etapas y salidas en su docstring).
+
+Ajuste al contrato, sin tocar los principios: el cuerpo que va a la capa visual se corta con **`--fade 0`**.
+El fundido de 0.1 s por empalme lo pinta la composición sobre la capa persona (opacidad 0 y vuelta en los
+`empalmes_en_salida_s` de `cuerpo.aplicado.json`), porque un fundido a negro dentro del video keyeado
+aparecería como un rectángulo negro sobre el fondo. El audio conserva su fundido en `cortar_video.py`.
+
+La capa visual añade a la carpeta del raw:
+```
+cuerpo.palabras.json      # palabras remapeadas al tiempo del cuerpo (pipeline/visual/remapear_palabras.py); solo captions
+mascara_sombras.png       # máscara de verde en sombra, una por set
+persona_1080_alfa.webm    # llave chromakey por zonas + despill + borde (quitar_verde_ffmpeg.sh --cuerpo cuerpo_1080.mp4)
+persona_576_alfa.webm     # derivada de la anterior, para el preview
+voz_cuerpo.m4a            # cuerpo_limpio.wav (DeepFilterNet3 + limpiar_audio) en AAC, pista de voz de la composición
+preview_576.mp4           # render de composicion/preview (Hyperframes), lo que ve el auditor
+pendientes_llave.md       # auditor de la llave (pipeline/visual/auditar_llave.py)
+final_1080.mp4            # solo con --hasta final
+```
+Corrección aplicada al EDL de IMG_7889: inicio en 9.30 s (la tos quedaba dentro; AssemblyAI la etiquetó como "Y").

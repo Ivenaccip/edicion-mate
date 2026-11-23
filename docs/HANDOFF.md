@@ -1,8 +1,9 @@
 # Handoff — estado general (actualizado 20 nov 2026, noche)
 
-> Sesión paralela de **capa visual / pantalla verde**: ver `docs/HANDOFF-pantalla-verde.md` y sus
-> resultados en `docs/02-capa-visual.md` (llave híbrida chromakey+RVM, WebM con alfa, composición Hyperframes).
-> Esta sesión (cortes + audio) y aquella no se pisan: una produce `cuerpo.mp4`, la otra lo viste.
+> **23 nov 2026: las dos capas están integradas en esta rama.** Cortes y audio: `docs/ESTANDAR-PIPELINE-AUDIO.md`
+> y `pipeline/README.md`. Capa visual: `docs/02-capa-visual.md`, `docs/HANDOFF-auditor.md`, `docs/03-broll-solicitud.md`.
+> Comando único: `python pipeline/editar.py raw.mp4 --rotar ccw --hasta visual`. Estándar de audio adoptado:
+> DeepFilterNet3 + `limpiar_audio.py` (el usuario lo prefirió de oído).
 
 ## Qué es este proyecto
 Recrear el sistema de edición automática de shorts de Charlie Sebastian que construyó un editor

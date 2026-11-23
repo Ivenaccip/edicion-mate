@@ -13,7 +13,7 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd); V=$REPO/pipeline/visual; C=$REPO/comp
 cd "$DIR"
 [ -f mascara_sombras.png ] || python "$V/mascara_sombras.py" cuerpo_1080.mp4 mascara_sombras.png --rotar no --encuadre no --frames 16 --fraccion 0.75 --dist-min 0.05 --dilatar 20 --pluma 1
 # 1) llave sobre el cuerpo ya cortado (sin rotar/recortar: lo hizo cortar_video.py)
-[ -f persona_1080_alfa.webm ] || { "$V/quitar_verde_ffmpeg.sh" --cuerpo cuerpo_1080.mp4 "$C/assets/fondo_degradado.png" persona_1080 mascara_sombras.png; mv persona_1080_alfa.webm persona_1080_alfa.webm 2>/dev/null; }
+[ -f persona_1080_alfa.webm ] || { "$V/quitar_verde_ffmpeg.sh" --cuerpo cuerpo_1080.mp4 "$C/assets/fondo_degradado.png" persona_1080 mascara_sombras.png; }
 [ -f persona_576_alfa.webm ] || ffmpeg -v error -y -c:v libvpx-vp9 -i persona_1080_alfa.webm -vf "scale=576:1024:flags=lanczos" -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 26 -row-mt 1 -cpu-used 5 -an persona_576_alfa.webm
 # 2) audio final del cuerpo: el limpio si existe, si no el del cuerpo
 if [ -f cuerpo_limpio.wav ]; then ffmpeg -v error -y -i cuerpo_limpio.wav -c:a aac -ac 1 -b:a 160k voz_cuerpo.m4a; else ffmpeg -v error -y -i cuerpo_576.mp4 -vn -c:a aac -ac 1 -b:a 160k voz_cuerpo.m4a; fi

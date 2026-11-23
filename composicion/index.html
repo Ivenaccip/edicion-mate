@@ -168,6 +168,13 @@
       });
       // Barra de progreso: 0 → 1080 px a lo largo del video
       tl.fromTo("#progreso", { width: 0 }, { width: 1080, duration: 32.74, ease: "none" }, 0);
+      // Empalmes internos del cuerpo (cortar_video.py --fade 0): el fundido de 0.1 s lo hace la capa persona aquí,
+      // bajando a opacidad 0 y volviendo, para no pintar negro sobre el fondo. Lo rellena vestir.sh desde cuerpo.aplicado.json.
+      const EMPALMES = [];
+      EMPALMES.forEach(t => {
+        tl.to("#persona", { opacity: 0, duration: 0.1, ease: "none" }, Math.max(0, t - 0.1));
+        tl.to("#persona", { opacity: 1, duration: 0.1, ease: "none" }, t);
+      });
       window.__timelines["main"] = tl;
       tl.seek(0);
     </script>

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="es" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="./vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "InterLocal"; src: url("./vendor/Inter-ExtraBold.otf") format("opentype"); font-weight: 400 900; }
+      /* v3: cuerpo completo (33.27 s) con los 4 b-roll del usuario, contadores en HTML y botón "Síguenos".
+         Sin captions todavía (van al final, cuando llegue la spec). Tiempos = tiempo del cuerpo (EDL aplicado). */
+      :root {
+        --crema: #f1ece3; --tinta: #1b1b1f; --azul: #2f8fff; --naranja: #e07b4a;
+        --font: "InterLocal", "DejaVu Sans", sans-serif;
+        --tarjeta-y: 1350px;
+        --texturas: 0;            /* 1 = grano + viñeta + degradado radial; 0 = crema plano (pedido del usuario) */
+        --tarjeta-opacidad: 0;    /* tarjeta bokeh detrás de la persona: 0 = oculta */
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); }
+      #root { position: relative; width: 1080px; height: 1920px; font-family: var(--font); }
+      .capa { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+
+      /* Capa 0: fondo claro permanente */
+      #fondo { z-index: 0; background: var(--crema); }
+
+      /* Capa 1: b-roll. Dos formas: "ventana" (clips horizontales, tarjeta flotante 16:9 arriba) y "lleno" (clips verticales a pantalla completa). */
+      .ventana { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; object-fit: cover;
+        box-shadow: 0 30px 80px rgba(0,0,0,.28); background: #000; z-index: 1; }
+      .lleno { z-index: 1; position: absolute; inset: 0; width: 1080px; height: 1920px; object-fit: cover; }
+
+      /* Título de apertura (plano 1-2), sobre fondo abstracto hecho en CSS */
+      #titulo { z-index: 1; position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; overflow: hidden;
+        background: radial-gradient(60% 80% at 20% 30%, #ff9a5c 0%, var(--naranja) 30%, #1b2a4a 70%, #0d1424 100%);
+        box-shadow: 0 30px 80px rgba(0,0,0,.28); color: #fff; }
+      #titulo h1 { position: absolute; left: 48px; right: 48px; top: 100px; font-size: 96px; line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase; }
+      #titulo .aster { position: absolute; right: 48px; bottom: 36px; width: 120px; height: 120px; }
+
+      /* Contadores sobre el b-roll (planos 6, 8, 9, 10) */
+      /* Contadores: siempre en la franja superior (y 330-560), libre de la persona, en blanco con sombra sobre cualquier b-roll */
+      /* Texto "doble": relleno blanco con contorno negro por fuera (paint-order pinta el borde debajo del
+         relleno) y una sombra suave. Se lee igual sobre público claro, globo oscuro o crema. Reutilizable en captions. */
+      .texto-doble { color: #fff; -webkit-text-stroke: 8px #111; paint-order: stroke fill;
+        text-shadow: 0 6px 18px rgba(0,0,0,.45); }
+      .contador { z-index: 2; position: absolute; left: 180px; width: 760px; top: 330px; text-align: left; opacity: 0; }
+      .contador b { display: block; font-size: 190px; line-height: 1; letter-spacing: -0.04em; }
+      .contador span { display: block; font-size: 58px; font-weight: 800; margin-top: 10px; -webkit-text-stroke-width: 5px; }
+
+      /* Capa 2: tarjeta cálida + sombra; capa 3: persona (WebM con alfa, chromakey por zonas + despill) */
+      #tarjeta { z-index: 3; position: absolute; left: 0; right: 0; top: var(--tarjeta-y); bottom: 0; border-radius: 56px 56px 0 0; overflow: hidden;
+        background:
+          radial-gradient(140px 140px at 18% 35%, rgba(255,190,120,.55) 0%, rgba(255,190,120,0) 70%),
+          radial-gradient(110px 110px at 82% 25%, rgba(255,160,90,.5) 0%, rgba(255,160,90,0) 70%),
+          radial-gradient(180px 180px at 60% 70%, rgba(255,210,150,.35) 0%, rgba(255,210,150,0) 70%),
+          radial-gradient(90px 90px at 35% 80%, rgba(255,140,80,.45) 0%, rgba(255,140,80,0) 70%),
+          linear-gradient(180deg, #3a2a22 0%, #2a1d18 100%);
+        box-shadow: 0 -20px 60px rgba(0,0,0,.25); opacity: var(--tarjeta-opacidad); }
+      #sombra { z-index: 4; position: absolute; left: 140px; right: 140px; top: 1500px; height: 420px; opacity: var(--tarjeta-opacidad);
+        background: radial-gradient(60% 50% at 50% 60%, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 70%); }
+      #persona { z-index: 5; object-fit: cover; filter: saturate(1.3) contrast(1.06) brightness(1.02); }
+
+      /* Grano de película fijo (SVG feTurbulence con semilla, determinista) y viñeta suave, sobre todo el cuadro */
+      #grano { z-index: 8; position: absolute; inset: 0; pointer-events: none; opacity: calc(0.07 * var(--texturas)); mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='320' height='320' filter='url(%23n)'/></svg>");
+        background-size: 320px 320px; }
+      #vineta { z-index: 8; position: absolute; inset: 0; pointer-events: none; opacity: var(--texturas);
+        background: radial-gradient(120% 90% at 50% 45%, rgba(0,0,0,0) 60%, rgba(0,0,0,.18) 100%); }
+      /* Barra de progreso del guion: línea fina arriba que avanza con el video */
+      #progreso { z-index: 9; position: absolute; left: 0; top: 0; height: 10px; width: 0; background: var(--naranja); }
+
+      /* Capa 6.5: captions (generadas por pipeline/visual/captions.py; estilo provisional hasta la spec).
+         Centradas a ~60 % de la altura, sobre el pecho, como en la referencia; nunca sobre la cara ni el b-roll. */
+      #captions { z-index: 6; position: absolute; left: 108px; width: 864px; top: 1360px; }
+      #captions .bloque { position: absolute; left: 0; width: 864px; text-align: center; opacity: 0; font-size: 66px; font-weight: 800;
+        line-height: 1.15; letter-spacing: -0.01em; color: #fff; -webkit-text-stroke: 7px #111; paint-order: stroke fill;
+        text-shadow: 0 6px 18px rgba(0,0,0,.45); }
+      #captions .pal { display: inline-block; padding: 2px 14px; border-radius: 16px; margin: 0 1px; }
+      #captions .pal.on { background: var(--azul); -webkit-text-stroke: 0; text-shadow: none; }
+
+      /* Capa 6: sub-composición "Síguenos" (planos 14-16) */
+      #siguenos { z-index: 6; position: absolute; inset: 0; }
+
+      /* Capa 7: logo blanco fijo, abajo a la derecha pero dentro de la zona segura (margen derecho 108 px,
+         por encima de la banda inferior que tapan TikTok/Reels/Shorts). Sombra suave por si la libreta o una
+         mano clara pasan debajo. */
+      #logo { z-index: 7; position: absolute; left: 48px; top: 1790px; width: 360px; height: auto;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="32.74" data-width="1080" data-height="1920">
+      <div id="fondo" class="clip capa" data-start="0" data-duration="32.74" data-track-index="0"></div>
+
+      <!-- Planos 1-2 (0-3.6): título -->
+      <div id="titulo" class="clip" data-start="0" data-duration="3.065" data-track-index="1">
+        <h1>Estamos<br>de regreso</h1>
+        <svg class="aster" viewBox="0 0 100 100"><g fill="#ffb27a"><path d="M46 2h8l-2 40 26-30 6 6-30 26 40-2v8l-40-2 30 26-6 6-26-30 2 40h-8l2-40-26 30-6-6 30-26-40 2v-8l40 2-30-26 6-6 26 30z"/></g></svg>
+      </div>
+
+      <!-- Planos 3-4 (3.6-7.6): robots, "mundo de la IA" -->
+      <video class="ventana clip" id="v-robots" src="./assets/b1_robots_720.mp4" data-start="3.065" data-duration="4" data-track-index="1" muted playsinline></video>
+      <!-- Planos 5-6 (7.6-11.6): clase, "hemos capacitado a más de 50,000 personas" -->
+      <video class="ventana clip" id="v-aula" src="./assets/b4_aula_720.mp4" data-start="7.065" data-duration="4" data-track-index="1" muted playsinline></video>
+      <div class="contador clip" id="c-personas" data-start="9.065" data-duration="2" data-track-index="2"><b class="texto-doble">+50,000</b><span class="texto-doble">personas capacitadas</span></div>
+
+      <!-- Planos 7-8 (11.6-15.6): globo, "en toda Latinoamérica… más de 70 empresas" -->
+      <video class="lleno clip" id="v-globo" src="./assets/b3_globo_1080x1920.mp4" data-start="11.065" data-duration="4" data-track-index="1" muted playsinline></video>
+      <div class="contador clip" id="c-empresas" data-start="13.065" data-duration="2" data-track-index="2"><b class="texto-doble">+70</b><span class="texto-doble">empresas impactadas</span></div>
+
+      <!-- Plano 9 (15.6-17.6): público, "más de 10 eventos" -->
+      <video class="lleno clip" id="v-publico" src="./assets/b2_publico_1080x1920.mp4" data-start="15.065" data-duration="2" data-track-index="1" muted playsinline></video>
+      <div class="contador clip" id="c-eventos" data-start="15.065" data-duration="2" data-track-index="2"><b class="texto-doble">+10</b><span class="texto-doble">eventos</span></div>
+
+      <!-- Plano 10 (17.6-19.6): globo otra vez, "13 países" -->
+      <video class="lleno clip" id="v-globo2" src="./assets/b3_globo_1080x1920.mp4" data-start="17.065" data-duration="2" data-media-start="6" data-track-index="1" muted playsinline></video>
+      <div class="contador clip" id="c-paises" data-start="17.065" data-duration="2" data-track-index="2"><b class="texto-doble">13</b><span class="texto-doble">países de Latinoamérica</span></div>
+
+      <!-- Plano 11 (19.6-21.8): público, segunda parte -->
+      <video class="lleno clip" id="v-publico2" src="./assets/b2_publico_1080x1920.mp4" data-start="19.065" data-duration="2.2" data-media-start="4.5" data-track-index="1" muted playsinline></video>
+
+      <!-- Plano 12 (21.8-27.1): sin b-roll, persona a cámara. Planos 14-16 (27.1-33.27): Síguenos -->
+      <div id="captions" class="clip" data-start="0" data-duration="32.74" data-track-index="8">
+        <!-- CAPTIONS -->
+        <div class="bloque" id="cap0"><span class="pal" data-t="0.340">estamos</span><span class="pal" data-t="0.725">de</span><span class="pal" data-t="0.805">regreso</span></div>
+        <div class="bloque" id="cap1"><span class="pal" data-t="1.606">después</span><span class="pal" data-t="2.007">de</span><span class="pal" data-t="2.328">9</span></div>
+        <div class="bloque" id="cap2"><span class="pal" data-t="2.648">largos</span><span class="pal" data-t="3.081">meses</span><span class="pal" data-t="3.306">de</span></div>
+        <div class="bloque" id="cap3"><span class="pal" data-t="3.386">estar</span><span class="pal" data-t="3.786">en</span><span class="pal" data-t="3.867">el</span></div>
+        <div class="bloque" id="cap4"><span class="pal" data-t="3.899">mundo</span><span class="pal" data-t="4.171">de</span><span class="pal" data-t="4.251">la</span></div>
+        <div class="bloque" id="cap5"><span class="pal" data-t="4.283">inteligencia</span><span class="pal" data-t="4.876">artificial.</span></div>
+        <div class="bloque" id="cap6"><span class="pal" data-t="5.614">Por</span><span class="pal" data-t="5.854">fin</span><span class="pal" data-t="6.111">estamos</span></div>
+        <div class="bloque" id="cap7"><span class="pal" data-t="6.576">de</span><span class="pal" data-t="6.736">vuelta.</span></div>
+        <div class="bloque" id="cap8"><span class="pal" data-t="7.633">A</span><span class="pal" data-t="7.794">lo</span><span class="pal" data-t="7.858">largo</span></div>
+        <div class="bloque" id="cap9"><span class="pal" data-t="8.050">de</span><span class="pal" data-t="8.114">estos</span><span class="pal" data-t="8.339">9</span></div>
+        <div class="bloque" id="cap10"><span class="pal" data-t="8.659">meses</span><span class="pal" data-t="8.996">hemos</span><span class="pal" data-t="9.220">capacitado</span></div>
+        <div class="bloque" id="cap11"><span class="pal" data-t="9.717">a</span><span class="pal" data-t="9.797">más</span><span class="pal" data-t="10.102">de</span></div>
+        <div class="bloque" id="cap12"><span class="pal" data-t="10.262">50,000</span><span class="pal" data-t="10.903">personas</span><span class="pal" data-t="11.400">en</span></div>
+        <div class="bloque" id="cap13"><span class="pal" data-t="11.545">toda</span><span class="pal" data-t="11.801">Latinoamérica,</span><span class="pal" data-t="13.003">en</span></div>
+        <div class="bloque" id="cap14"><span class="pal" data-t="13.228">más</span><span class="pal" data-t="13.388">de</span><span class="pal" data-t="13.468">70</span></div>
+        <div class="bloque" id="cap15"><span class="pal" data-t="13.965">empresas</span><span class="pal" data-t="14.686">hemos</span><span class="pal" data-t="15.007">impactado</span></div>
+        <div class="bloque" id="cap16"><span class="pal" data-t="16.049">hemos</span><span class="pal" data-t="16.353">creado</span><span class="pal" data-t="16.706">más</span></div>
+        <div class="bloque" id="cap17"><span class="pal" data-t="16.995">de</span><span class="pal" data-t="17.155">10</span><span class="pal" data-t="17.411">eventos</span></div>
+        <div class="bloque" id="cap18"><span class="pal" data-t="18.037">todo</span><span class="pal" data-t="18.213">esto</span><span class="pal" data-t="18.776">alrededor</span></div>
+        <div class="bloque" id="cap19"><span class="pal" data-t="19.322">de</span><span class="pal" data-t="19.483">13</span><span class="pal" data-t="19.805">países</span></div>
+        <div class="bloque" id="cap20"><span class="pal" data-t="20.383">en</span><span class="pal" data-t="20.528">Latinoamérica.</span></div>
+        <div class="bloque" id="cap21"><span class="pal" data-t="21.830">Y</span><span class="pal" data-t="21.910">hoy</span><span class="pal" data-t="22.312">estamos</span></div>
+        <div class="bloque" id="cap22"><span class="pal" data-t="22.874">aquí</span><span class="pal" data-t="23.099">de</span><span class="pal" data-t="23.260">vuelta</span></div>
+        <div class="bloque" id="cap23"><span class="pal" data-t="23.582">para</span><span class="pal" data-t="23.742">poder</span><span class="pal" data-t="23.967">enseñarte</span></div>
+        <div class="bloque" id="cap24"><span class="pal" data-t="24.466">más</span><span class="pal" data-t="24.626">sobre</span><span class="pal" data-t="24.883">el</span></div>
+        <div class="bloque" id="cap25"><span class="pal" data-t="24.980">mundo</span><span class="pal" data-t="25.269">de</span><span class="pal" data-t="25.382">la</span></div>
+        <div class="bloque" id="cap26"><span class="pal" data-t="25.446">inteligencia</span><span class="pal" data-t="26.057">artificial.</span></div>
+        <div class="bloque" id="cap27"><span class="pal" data-t="26.876">Si</span><span class="pal" data-t="26.957">te</span><span class="pal" data-t="27.053">interesa</span></div>
+        <div class="bloque" id="cap28"><span class="pal" data-t="27.423">aprender</span><span class="pal" data-t="27.841">más</span><span class="pal" data-t="28.018">del</span></div>
+        <div class="bloque" id="cap29"><span class="pal" data-t="28.130">mundo</span><span class="pal" data-t="28.355">de</span><span class="pal" data-t="28.387">la</span></div>
+        <div class="bloque" id="cap30"><span class="pal" data-t="28.419">inteligencia</span><span class="pal" data-t="28.902">artificial,</span><span class="pal" data-t="29.689">síguenos.</span></div>
+        <div class="bloque" id="cap31"><span class="pal" data-t="30.573">Pronto</span><span class="pal" data-t="30.911">estaremos</span><span class="pal" data-t="31.296">subiendo</span></div>
+        <div class="bloque" id="cap32"><span class="pal" data-t="31.650">nuevos</span><span class="pal" data-t="32.020">videos.</span></div>
+        <!-- /CAPTIONS -->
+      </div>
+      <div id="siguenos" class="clip" data-composition-id="siguenos" data-composition-src="compositions/siguenos.html" data-start="26.565" data-duration="6.175" data-track-index="6"></div>
+
+      <div id="tarjeta" class="clip" data-start="0" data-duration="32.74" data-track-index="3"></div>
+      <div id="sombra"></div>
+      <video id="persona" class="clip capa" src="./assets/persona_cuerpo_alfa.webm" data-start="0" data-duration="32.74" data-track-index="4" muted playsinline></video>
+      <audio id="voz" src="./assets/voz_cuerpo.m4a" data-start="0" data-duration="32.74" data-track-index="5"></audio>
+
+      <!-- SFX (pipeline/visual/sintetizar_sfx.py): solo dos whoosh (primer b-roll y entrada de Síguenos), pop al
+           cerrar cada contador y click en el botón. Volumen bajo: la voz manda. -->
+      <audio id="sfx-intro" src="./assets/sfx/intro.m4a" data-start="0" data-duration="0.92" data-volume="0.6"></audio>
+      <audio id="sfx-w1" src="./assets/sfx/whoosh.m4a" data-start="3.015" data-duration="0.47" data-volume="0.3"></audio>
+      <audio id="sfx-w8" src="./assets/sfx/whoosh.m4a" data-start="26.515" data-duration="0.47" data-volume="0.35"></audio>
+      <audio id="sfx-p1" src="./assets/sfx/pop.m4a" data-start="9.965" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-p2" src="./assets/sfx/pop.m4a" data-start="13.965" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-p3" src="./assets/sfx/pop.m4a" data-start="15.965" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-p4" src="./assets/sfx/pop.m4a" data-start="17.965" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-click" src="./assets/sfx/click.m4a" data-start="27.865" data-duration="0.11" data-volume="0.6"></audio>
+      <div id="grano"></div>
+      <div id="vineta"></div>
+      <div id="progreso"></div>
+      <img id="logo" class="clip" src="./assets/logo_blanco.png" data-start="0" data-duration="32.74" data-track-index="7" alt="" />
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const entra = (sel, t, dur = 0.35) => tl.fromTo(sel, { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: "power3.out" }, t);
+      // Frame 0 es la miniatura en redes: persona y título ya visibles; solo un leve asentamiento.
+      tl.fromTo("#persona", { y: 12 }, { y: 0, duration: 0.3, ease: "power3.out" }, 0);
+      // Zoom de arranque: el título entra grande y asienta en 0.45 s, a la vez que el barrido del "tin"
+      tl.fromTo("#titulo", { scale: 1.14 }, { scale: 1, duration: 0.45, ease: "power3.out" }, 0);
+      tl.fromTo("#titulo h1", { y: 14 }, { y: 0, duration: 0.4, ease: "power3.out" }, 0);
+      tl.fromTo("#titulo .aster", { rotate: -45 }, { rotate: 0, duration: 0.6, ease: "back.out(2)" }, 0);
+      entra("#v-robots", 3.065); entra("#v-aula", 7.065);
+      // contadores: entran y cuentan hasta su valor
+      const cuenta = (sel, t, hasta, fmt) => {
+        const o = { v: 0 }; const el = document.querySelector(sel + " b");
+        tl.fromTo(sel, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, t);
+        tl.to(o, { v: hasta, duration: 0.9, ease: "power2.out", onUpdate: () => { el.textContent = fmt(Math.round(o.v)); } }, t);
+      };
+      cuenta("#c-personas", 9.065, 50000, v => "+" + v.toLocaleString("en-US"));
+      cuenta("#c-empresas", 13.065, 70, v => "+" + v);
+      cuenta("#c-eventos", 15.065, 10, v => "+" + v);
+      cuenta("#c-paises", 17.065, 13, v => "" + v);
+      // Punch-in de la persona en cada cambio de b-roll (5 %, 350 ms) para que se sienta editado
+      [3.065, 7.065, 11.065, 15.065, 17.065, 19.065, 21.265, 26.565].forEach(t => {
+        tl.to("#persona", { scale: 1.05, duration: 0.12, ease: "power2.out" }, t);
+        tl.to("#persona", { scale: 1.0, duration: 0.25, ease: "power2.inOut" }, t + 0.12);
+      });
+      // Ken Burns: cada b-roll crece despacio del 100 al 108 % durante su plano; las ventanas entran con barrido
+      const kb = (sel, t, dur, origen) => { tl.set(sel, { transformOrigin: origen }, t); tl.fromTo(sel, { scale: 1.0 }, { scale: 1.08, duration: dur, ease: "none" }, t); };
+      kb("#v-robots", 3.065, 4, "50% 40%"); kb("#v-aula", 7.065, 4, "40% 50%");
+      kb("#v-globo", 11.065, 4, "50% 45%"); kb("#v-publico", 15.065, 2, "50% 40%");
+      kb("#v-globo2", 17.065, 2, "50% 45%"); kb("#v-publico2", 19.065, 2.2, "55% 40%");
+      const barrido = (sel, t) => tl.fromTo(sel, { clipPath: "inset(0 100% 0 0 round 28px)" }, { clipPath: "inset(0 0% 0 0 round 28px)", duration: 0.28, ease: "power3.out" }, t);
+      barrido("#v-robots", 3.065); barrido("#v-aula", 7.065);
+      const barridoV = (sel, t) => tl.fromTo(sel, { clipPath: "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0% 0)", duration: 0.3, ease: "power3.out" }, t);
+      barridoV("#v-globo", 11.065); barridoV("#v-publico", 15.065); barridoV("#v-globo2", 17.065); barridoV("#v-publico2", 19.065);
+      // Rebote del número al llegar a su valor (coincide con el pop)
+      [["#c-personas", 9.965], ["#c-empresas", 13.965], ["#c-eventos", 15.965], ["#c-paises", 17.965]].forEach(([sel, t]) => {
+        tl.to(sel + " b", { scale: 1.06, duration: 0.08, ease: "power2.out" }, t);
+        tl.to(sel + " b", { scale: 1.0, duration: 0.18, ease: "back.out(2)" }, t + 0.08);
+      });
+      // Barra de progreso: 0 → 1080 px a lo largo del video
+      tl.fromTo("#progreso", { width: 0 }, { width: 1080, duration: 32.74, ease: "none" }, 0);
+      // Empalmes internos del cuerpo (cortar_video.py --fade 0): el fundido de 0.1 s lo hace la capa persona aquí,
+      // bajando a opacidad 0 y volviendo, para no pintar negro sobre el fondo. Lo rellena vestir.sh desde cuerpo.aplicado.json.
+      const EMPALMES = [];
+      EMPALMES.forEach(t => {
+        tl.to("#persona", { opacity: 0, duration: 0.1, ease: "none" }, Math.max(0, t - 0.1));
+        tl.to("#persona", { opacity: 1, duration: 0.1, ease: "none" }, t);
+      });
+      // Captions: cada bloque entra con su primera palabra y sale al empezar el siguiente; la palabra activa cambia
+      // en el instante en que AssemblyAI la oye empezar (tiempos ya remapeados al cuerpo).
+      const capBloque = (sel, t0, t1) => {
+        const b = document.querySelector(sel); if (!b) return;
+        const spans = Array.from(b.querySelectorAll(".pal"));
+        tl.fromTo(b, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.12, ease: "back.out(2)" }, t0);
+        tl.set(b, { opacity: 0 }, t1);
+        spans.forEach((s, j) => {
+          tl.set(s, { className: "pal on" }, parseFloat(s.dataset.t));
+          if (j + 1 < spans.length) tl.set(s, { className: "pal" }, parseFloat(spans[j + 1].dataset.t));
+        });
+      };
+      // CAPTIONS-TL
+      capBloque("#cap0", 0.340, 1.606);
+      capBloque("#cap1", 1.606, 2.648);
+      capBloque("#cap2", 2.648, 3.386);
+      capBloque("#cap3", 3.386, 3.899);
+      capBloque("#cap4", 3.899, 4.283);
+      capBloque("#cap5", 4.283, 5.614);
+      capBloque("#cap6", 5.614, 6.576);
+      capBloque("#cap7", 6.576, 7.633);
+      capBloque("#cap8", 7.633, 8.050);
+      capBloque("#cap9", 8.050, 8.659);
+      capBloque("#cap10", 8.659, 9.717);
+      capBloque("#cap11", 9.717, 10.262);
+      capBloque("#cap12", 10.262, 11.545);
+      capBloque("#cap13", 11.545, 13.228);
+      capBloque("#cap14", 13.228, 13.965);
+      capBloque("#cap15", 13.965, 16.049);
+      capBloque("#cap16", 16.049, 16.995);
+      capBloque("#cap17", 16.995, 18.037);
+      capBloque("#cap18", 18.037, 19.322);
+      capBloque("#cap19", 19.322, 20.383);
+      capBloque("#cap20", 20.383, 21.830);
+      capBloque("#cap21", 21.830, 22.874);
+      capBloque("#cap22", 22.874, 23.582);
+      capBloque("#cap23", 23.582, 24.466);
+      capBloque("#cap24", 24.466, 24.980);
+      capBloque("#cap25", 24.980, 25.446);
+      capBloque("#cap26", 25.446, 26.876);
+      capBloque("#cap27", 26.876, 27.423);
+      capBloque("#cap28", 27.423, 28.130);
+      capBloque("#cap29", 28.130, 28.419);
+      capBloque("#cap30", 28.419, 30.573);
+      capBloque("#cap31", 30.573, 31.650);
+      capBloque("#cap32", 31.650, 32.733);
+      // /CAPTIONS-TL
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

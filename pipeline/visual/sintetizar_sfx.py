@@ -59,3 +59,20 @@ if __name__ == "__main__":
     d = sys.argv[1]; os.makedirs(d, exist_ok=True)
     guardar(os.path.join(d, "whoosh.wav"), whoosh()); guardar(os.path.join(d, "click.wav"), click())
     guardar(os.path.join(d, "pop.wav"), pop()); guardar(os.path.join(d, "tick.wav"), tick())
+
+def intro(dur=0.9):
+    """'Tin' de arranque con zoom: barrido ascendente de 0.45 s (ruido + seno) que remata en una campanita."""
+    n = int(SR*dur); t = np.arange(n)/SR
+    n1 = int(SR*0.45); t1 = t[:n1]
+    f = 220 + (1800-220)*(t1/0.45)**2                      # subida acelerada (sensación de zoom)
+    fase = 2*np.pi*np.cumsum(f)/SR
+    barrido = 0.5*np.sin(fase)*np.linspace(0.2, 1, n1)
+    ruido = rng.standard_normal(n1)
+    b, a = signal.butter(2, [800/(SR/2), 6000/(SR/2)], 'band'); ruido = signal.lfilter(b, a, ruido)*np.linspace(0, 0.5, n1)**2
+    t2 = t[n1:] - 0.45
+    campana = (np.sin(2*np.pi*1760*t2)*np.exp(-t2*9) + 0.6*np.sin(2*np.pi*2640*t2)*np.exp(-t2*14) + 0.3*np.sin(2*np.pi*4400*t2)*np.exp(-t2*20))
+    out = np.concatenate([barrido + ruido, 0.9*campana])
+    return out/np.abs(out).max()*0.9
+
+if __name__ == "__main__" and len(sys.argv) > 1:
+    guardar(os.path.join(sys.argv[1], "intro.wav"), intro())

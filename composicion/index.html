@@ -12,6 +12,8 @@
         --crema: #f1ece3; --tinta: #1b1b1f; --azul: #2f8fff; --naranja: #e07b4a;
         --font: "InterLocal", "DejaVu Sans", sans-serif;
         --tarjeta-y: 1350px;
+        --texturas: 0;            /* 1 = grano + viñeta + degradado radial; 0 = crema plano (pedido del usuario) */
+        --tarjeta-opacidad: 0;    /* tarjeta bokeh detrás de la persona: 0 = oculta */
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); }
@@ -19,7 +21,7 @@
       .capa { position: absolute; inset: 0; width: 1080px; height: 1920px; }
 
       /* Capa 0: fondo claro permanente */
-      #fondo { z-index: 0; background: radial-gradient(120% 80% at 50% 20%, #fbf8f2 0%, var(--crema) 55%, #e4dccf 100%); }
+      #fondo { z-index: 0; background: var(--crema); }
 
       /* Capa 1: b-roll. Dos formas: "ventana" (clips horizontales, tarjeta flotante 16:9 arriba) y "lleno" (clips verticales a pantalla completa). */
       .ventana { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; object-fit: cover;
@@ -51,16 +53,16 @@
           radial-gradient(180px 180px at 60% 70%, rgba(255,210,150,.35) 0%, rgba(255,210,150,0) 70%),
           radial-gradient(90px 90px at 35% 80%, rgba(255,140,80,.45) 0%, rgba(255,140,80,0) 70%),
           linear-gradient(180deg, #3a2a22 0%, #2a1d18 100%);
-        box-shadow: 0 -20px 60px rgba(0,0,0,.25); }
-      #sombra { z-index: 4; position: absolute; left: 140px; right: 140px; top: 1500px; height: 420px;
+        box-shadow: 0 -20px 60px rgba(0,0,0,.25); opacity: var(--tarjeta-opacidad); }
+      #sombra { z-index: 4; position: absolute; left: 140px; right: 140px; top: 1500px; height: 420px; opacity: var(--tarjeta-opacidad);
         background: radial-gradient(60% 50% at 50% 60%, rgba(0,0,0,.45) 0%, rgba(0,0,0,0) 70%); }
       #persona { z-index: 5; object-fit: cover; filter: saturate(1.3) contrast(1.06) brightness(1.02); }
 
       /* Grano de película fijo (SVG feTurbulence con semilla, determinista) y viñeta suave, sobre todo el cuadro */
-      #grano { z-index: 8; position: absolute; inset: 0; pointer-events: none; opacity: 0.07; mix-blend-mode: overlay;
+      #grano { z-index: 8; position: absolute; inset: 0; pointer-events: none; opacity: calc(0.07 * var(--texturas)); mix-blend-mode: overlay;
         background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='320'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='7' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='320' height='320' filter='url(%23n)'/></svg>");
         background-size: 320px 320px; }
-      #vineta { z-index: 8; position: absolute; inset: 0; pointer-events: none;
+      #vineta { z-index: 8; position: absolute; inset: 0; pointer-events: none; opacity: var(--texturas);
         background: radial-gradient(120% 90% at 50% 45%, rgba(0,0,0,0) 60%, rgba(0,0,0,.18) 100%); }
       /* Barra de progreso del guion: línea fina arriba que avanza con el video */
       #progreso { z-index: 9; position: absolute; left: 0; top: 0; height: 10px; width: 0; background: var(--naranja); }
@@ -71,7 +73,7 @@
       /* Capa 7: logo blanco fijo, abajo a la derecha pero dentro de la zona segura (margen derecho 108 px,
          por encima de la banda inferior que tapan TikTok/Reels/Shorts). Sombra suave por si la libreta o una
          mano clara pasan debajo. */
-      #logo { z-index: 7; position: absolute; right: 108px; top: 1786px; width: 260px; height: auto;
+      #logo { z-index: 7; position: absolute; right: 300px; top: 1760px; width: 360px; height: auto;
         filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
     </style>
   </head>
@@ -116,6 +118,7 @@
 
       <!-- SFX (pipeline/visual/sintetizar_sfx.py): solo dos whoosh (primer b-roll y entrada de Síguenos), pop al
            cerrar cada contador y click en el botón. Volumen bajo: la voz manda. -->
+      <audio id="sfx-intro" src="./assets/sfx/intro.m4a" data-start="0" data-duration="0.92" data-volume="0.6"></audio>
       <audio id="sfx-w1" src="./assets/sfx/whoosh.m4a" data-start="3.015" data-duration="0.47" data-volume="0.3"></audio>
       <audio id="sfx-w8" src="./assets/sfx/whoosh.m4a" data-start="26.515" data-duration="0.47" data-volume="0.35"></audio>
       <audio id="sfx-p1" src="./assets/sfx/pop.m4a" data-start="9.965" data-duration="0.2" data-volume="0.45"></audio>
@@ -134,7 +137,9 @@
       const entra = (sel, t, dur = 0.35) => tl.fromTo(sel, { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: "power3.out" }, t);
       // Frame 0 es la miniatura en redes: persona y título ya visibles; solo un leve asentamiento.
       tl.fromTo("#persona", { y: 12 }, { y: 0, duration: 0.3, ease: "power3.out" }, 0);
-      tl.fromTo("#titulo h1", { y: 14, scale: 0.98 }, { y: 0, scale: 1, duration: 0.4, ease: "power3.out" }, 0);
+      // Zoom de arranque: el título entra grande y asienta en 0.45 s, a la vez que el barrido del "tin"
+      tl.fromTo("#titulo", { scale: 1.14 }, { scale: 1, duration: 0.45, ease: "power3.out" }, 0);
+      tl.fromTo("#titulo h1", { y: 14 }, { y: 0, duration: 0.4, ease: "power3.out" }, 0);
       tl.fromTo("#titulo .aster", { rotate: -45 }, { rotate: 0, duration: 0.6, ease: "back.out(2)" }, 0);
       entra("#v-robots", 3.065); entra("#v-aula", 7.065);
       // contadores: entran y cuentan hasta su valor

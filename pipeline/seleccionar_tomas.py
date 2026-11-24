@@ -15,12 +15,16 @@ Pasos:
   3 mejor    = por línea: completa (termina en . ? !) > sin tartamudeo (sin bigrama repetido) > más larga > la última.
   4 bordes   = la voz real por energía (ventanas de 10 ms, raw_audio.wav; el transcriptor da fines ~0.1 s tarde) y
                --pausa-empalme (0.25 s) de silencio total por empalme, mitad en cada lado; --aire (0.15 s) al final.
-  5 EDL      = quitar = complemento de las tomas elegidas + las pausas acortadas del editor que caen dentro de ellas.
+  5 verifica = tartamudeos por señal en cada toma elegida (tartamudeo.py: la misma trayectoria espectral repetida
+               con un desfase de 0.5-2.4 s); se quita una repetición exacta por hallazgo. --sin-verificar lo apaga.
+  6 EDL      = quitar = complemento de las tomas elegidas + las pausas acortadas del editor que caen dentro de ellas.
 Uso: seleccionar_tomas.py raw.palabras.json raw_audio.wav raw.edl.json [--salida raw.edl.json] [--md tomas.md]
     (sin --salida solo imprime el plan). --forzar-toma LINEA:TOMA elige a mano (índices del plan);
     --terminar-en LINEA:PALABRA recorta la toma elegida tras esa palabra (corte en el valle entre palabras).
 """
-import argparse, json, re, unicodedata, difflib
+import argparse, json, re, unicodedata, difflib, subprocess, sys, tempfile
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import numpy as np, soundfile as sf
 
 def norm(w):
@@ -106,6 +110,27 @@ def borde_voz(x, sr, t_asr, hacia, lim, umbral_db=-40, busca=0.35, hueco=0.06):
         t -= 0.01
     return max(t_asr, tope)
 
+def verificar_toma(x, sr, ini, fin, md, k):
+    """Busca por señal tartamudeos dentro de la toma (pipeline/tartamudeo.py): una frase dicha dos veces seguidas que
+    el transcriptor funde en una ("Si te quieres mantener, si te quieres mantener actualizado" salió como una sola
+    frase, en el raw completo y en el segmento aislado). Quita una repetición exacta por hallazgo, cortando en el
+    aire previo y saltando al mismo punto de la segunda repetición, hasta 3 veces. Devuelve los tramos que quedan."""
+    from tartamudeo import quitar_tartamudeos
+    qs = quitar_tartamudeos(x[int(ini * sr):int(fin * sr)], sr)
+    if not qs:
+        md.append(f"- tramo {k}: sin tartamudeo (señal)"); return [[ini, fin]]
+    partes, cur = [], ini
+    for a, b in sorted(qs):
+        if ini + a > cur: partes.append([cur, ini + a])
+        cur = max(cur, ini + b)
+    if cur < fin: partes.append([cur, fin])
+    # un pedazo inicial de aire menor a 0.2 s (el que había antes de la primera repetición) no vale un empalme:
+    # se quita y el siguiente tramo arranca en el valle previo a la segunda repetición
+    if len(partes) > 1 and partes[0][1] - partes[0][0] < 0.2:
+        q1 = partes[1][0]; partes = partes[1:]; partes[0][0] = valle(x, sr, max(ini, q1 - 0.3), q1 - 0.01)
+    md.append(f"- tramo {k}: tartamudeo por señal, quitado " + ", ".join(f"{ini + a:.3f}-{ini + b:.3f} ({b - a:.2f} s)" for a, b in qs))
+    return partes
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("palabras"); ap.add_argument("audio"); ap.add_argument("edl_pausas")
@@ -113,6 +138,7 @@ def main():
     ap.add_argument("--pausa-empalme", type=float, default=0.25, help="s de silencio total en cada empalme (regla del editor de pausas: 250 ms)")
     ap.add_argument("--forzar-toma", action="append", default=[], help="LINEA:TOMA (índices del plan)")
     ap.add_argument("--terminar-en", action="append", default=[], help="LINEA:PALABRA, la toma elegida termina tras la última PALABRA (p. ej. 2:llegar)")
+    ap.add_argument("--sin-verificar", action="store_true", help="no buscar tartamudeos por señal en las tomas elegidas (ver verificar_toma)")
     ap.add_argument("--guion", help="archivo de texto con el guion final, una frase por línea: para cada frase se elige la toma más parecida (difflib >= 0.6; empate: la última). Sustituye al agrupado automático; sirve cuando las tomas no repiten las mismas palabras o hay mucha charla con el equipo")
     a = ap.parse_args()
     d = json.load(open(a.palabras)); pal = d["palabras"] if isinstance(d, dict) else d
@@ -168,7 +194,9 @@ def main():
         # antes de "Si quieres" que quedaba dentro del empalme
         while ini < voz_ini - 0.02 and not callada(x, sr, ini): ini += 0.01
         while fin > voz_fin + 0.02 and not callada(x, sr, fin - 0.01): fin -= 0.01
-        tramos.append([round(ini, 3), round(fin, 3)]); md.append(f"- tramo {k}: voz {voz_ini:.2f}-{voz_fin:.2f} s (transcriptor {p0['ini']:.2f}-{p1['fin']:.2f}), corte {ini:.3f}-{fin:.3f}")
+        md.append(f"- tramo {k}: voz {voz_ini:.2f}-{voz_fin:.2f} s (transcriptor {p0['ini']:.2f}-{p1['fin']:.2f}), corte {ini:.3f}-{fin:.3f}")
+        partes = [[ini, fin]] if a.sin_verificar else verificar_toma(x, sr, ini, fin, md, k)
+        tramos.extend([round(q0, 3), round(q1, 3)] for q0, q1 in partes)
     # quitar = complemento + pausas acortadas del editor dentro de cada tramo
     edl_p = json.load(open(a.edl_pausas)); quitar = []; cursor = 0.0
     for ini, fin in tramos:

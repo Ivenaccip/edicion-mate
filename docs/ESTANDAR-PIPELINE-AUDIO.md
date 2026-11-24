@@ -107,3 +107,13 @@ Lo que no cambia: la señal sigue decidiendo dónde cae cada corte (voz real por
 empalme, el aire se acerca a la voz si no está callado), y las pausas acortadas del editor se aplican dentro de cada
 toma. Diagnóstico sobre los tres raws: IMG_7889 continuo (1 línea repetida → automático), IMG_7924 a varias tomas
 (3 líneas repetidas, 19 tomas → 3 frases), IMG_7922 a varias tomas (6 líneas repetidas, 51 tomas → 8 frases, 44.7 s).
+
+### Tartamudeos que el transcriptor funde (24 nov 2026)
+En IMG_7922 el CTA decía "Si te quieres mantener, si te quieres mantener actualizado..." y AssemblyAI lo transcribió
+como una sola frase ("actualizado" de 1.1 s), tanto en el raw completo como en el segmento aislado. Por eso el
+selector no lo veía. Regla: cada toma elegida se revisa **por señal** con `pipeline/tartamudeo.py`: la trayectoria
+espectral (log-mel, 10 ms) de una frase que se repite reaparece con un desfase de 0.5-2.4 s; si un bloque se parece
+a su copia desplazada bastante más que a cualquier otro bloque del audio (distancia/referencia < 0.60) y la
+alineación se confirma, se quita exactamente una repetición cortando en el aire previo y saltando al mismo punto de
+la segunda. Hasta 3 repeticiones por toma. Validado: detecta el CTA de IMG_7922 y los 3 tartamudeos conocidos de
+IMG_7924; no marca ninguna de las 10 tomas limpias de ambos. Sigue sin cortar dentro de voz: el salto cae en aire.

@@ -67,6 +67,15 @@
       /* Barra de progreso del guion: línea fina arriba que avanza con el video */
       #progreso { z-index: 9; position: absolute; left: 0; top: 0; height: 10px; width: 0; background: var(--naranja); }
 
+      /* Capa 6.5: captions (generadas por pipeline/visual/captions.py; estilo provisional hasta la spec).
+         Centradas a ~60 % de la altura, sobre el pecho, como en la referencia; nunca sobre la cara ni el b-roll. */
+      #captions { z-index: 6; position: absolute; left: 108px; width: 864px; top: 1120px; }
+      #captions .bloque { position: absolute; left: 0; width: 864px; text-align: center; opacity: 0; font-size: 66px; font-weight: 800;
+        line-height: 1.15; letter-spacing: -0.01em; color: #fff; -webkit-text-stroke: 7px #111; paint-order: stroke fill;
+        text-shadow: 0 6px 18px rgba(0,0,0,.45); }
+      #captions .pal { display: inline-block; padding: 2px 14px; border-radius: 16px; margin: 0 1px; }
+      #captions .pal.on { background: var(--azul); -webkit-text-stroke: 0; text-shadow: none; }
+
       /* Capa 6: sub-composición "Síguenos" (planos 14-16) */
       #siguenos { z-index: 6; position: absolute; inset: 0; }
 
@@ -109,6 +118,43 @@
       <video class="lleno clip" id="v-publico2" src="./assets/b2_publico_1080x1920.mp4" data-start="19.065" data-duration="2.2" data-media-start="4.5" data-track-index="1" muted playsinline></video>
 
       <!-- Plano 12 (21.8-27.1): sin b-roll, persona a cámara. Planos 14-16 (27.1-33.27): Síguenos -->
+      <div id="captions" class="clip" data-start="0" data-duration="32.74" data-track-index="8">
+        <!-- CAPTIONS -->
+        <div class="bloque" id="cap0"><span class="pal" data-t="0.340">estamos</span><span class="pal" data-t="0.725">de</span><span class="pal" data-t="0.805">regreso</span></div>
+        <div class="bloque" id="cap1"><span class="pal" data-t="1.606">después</span><span class="pal" data-t="2.007">de</span><span class="pal" data-t="2.328">9</span></div>
+        <div class="bloque" id="cap2"><span class="pal" data-t="2.648">largos</span><span class="pal" data-t="3.081">meses</span><span class="pal" data-t="3.306">de</span></div>
+        <div class="bloque" id="cap3"><span class="pal" data-t="3.386">estar</span><span class="pal" data-t="3.786">en</span><span class="pal" data-t="3.867">el</span></div>
+        <div class="bloque" id="cap4"><span class="pal" data-t="3.899">mundo</span><span class="pal" data-t="4.171">de</span><span class="pal" data-t="4.251">la</span></div>
+        <div class="bloque" id="cap5"><span class="pal" data-t="4.283">inteligencia</span><span class="pal" data-t="4.876">artificial.</span></div>
+        <div class="bloque" id="cap6"><span class="pal" data-t="5.614">Por</span><span class="pal" data-t="5.854">fin</span><span class="pal" data-t="6.111">estamos</span></div>
+        <div class="bloque" id="cap7"><span class="pal" data-t="6.576">de</span><span class="pal" data-t="6.736">vuelta.</span></div>
+        <div class="bloque" id="cap8"><span class="pal" data-t="7.633">A</span><span class="pal" data-t="7.794">lo</span><span class="pal" data-t="7.858">largo</span></div>
+        <div class="bloque" id="cap9"><span class="pal" data-t="8.050">de</span><span class="pal" data-t="8.114">estos</span><span class="pal" data-t="8.339">9</span></div>
+        <div class="bloque" id="cap10"><span class="pal" data-t="8.659">meses</span><span class="pal" data-t="8.996">hemos</span><span class="pal" data-t="9.220">capacitado</span></div>
+        <div class="bloque" id="cap11"><span class="pal" data-t="9.717">a</span><span class="pal" data-t="9.797">más</span><span class="pal" data-t="10.102">de</span></div>
+        <div class="bloque" id="cap12"><span class="pal" data-t="10.262">50,000</span><span class="pal" data-t="10.903">personas</span><span class="pal" data-t="11.400">en</span></div>
+        <div class="bloque" id="cap13"><span class="pal" data-t="11.545">toda</span><span class="pal" data-t="11.801">Latinoamérica,</span><span class="pal" data-t="13.003">en</span></div>
+        <div class="bloque" id="cap14"><span class="pal" data-t="13.228">más</span><span class="pal" data-t="13.388">de</span><span class="pal" data-t="13.468">70</span></div>
+        <div class="bloque" id="cap15"><span class="pal" data-t="13.965">empresas</span><span class="pal" data-t="14.686">hemos</span><span class="pal" data-t="15.007">impactado</span></div>
+        <div class="bloque" id="cap16"><span class="pal" data-t="16.049">hemos</span><span class="pal" data-t="16.353">creado</span><span class="pal" data-t="16.706">más</span></div>
+        <div class="bloque" id="cap17"><span class="pal" data-t="16.995">de</span><span class="pal" data-t="17.155">10</span><span class="pal" data-t="17.411">eventos</span></div>
+        <div class="bloque" id="cap18"><span class="pal" data-t="18.037">todo</span><span class="pal" data-t="18.213">esto</span><span class="pal" data-t="18.776">alrededor</span></div>
+        <div class="bloque" id="cap19"><span class="pal" data-t="19.322">de</span><span class="pal" data-t="19.483">13</span><span class="pal" data-t="19.805">países</span></div>
+        <div class="bloque" id="cap20"><span class="pal" data-t="20.383">en</span><span class="pal" data-t="20.528">Latinoamérica.</span></div>
+        <div class="bloque" id="cap21"><span class="pal" data-t="21.830">Y</span><span class="pal" data-t="21.910">hoy</span><span class="pal" data-t="22.312">estamos</span></div>
+        <div class="bloque" id="cap22"><span class="pal" data-t="22.874">aquí</span><span class="pal" data-t="23.099">de</span><span class="pal" data-t="23.260">vuelta</span></div>
+        <div class="bloque" id="cap23"><span class="pal" data-t="23.582">para</span><span class="pal" data-t="23.742">poder</span><span class="pal" data-t="23.967">enseñarte</span></div>
+        <div class="bloque" id="cap24"><span class="pal" data-t="24.466">más</span><span class="pal" data-t="24.626">sobre</span><span class="pal" data-t="24.883">el</span></div>
+        <div class="bloque" id="cap25"><span class="pal" data-t="24.980">mundo</span><span class="pal" data-t="25.269">de</span><span class="pal" data-t="25.382">la</span></div>
+        <div class="bloque" id="cap26"><span class="pal" data-t="25.446">inteligencia</span><span class="pal" data-t="26.057">artificial.</span></div>
+        <div class="bloque" id="cap27"><span class="pal" data-t="26.876">Si</span><span class="pal" data-t="26.957">te</span><span class="pal" data-t="27.053">interesa</span></div>
+        <div class="bloque" id="cap28"><span class="pal" data-t="27.423">aprender</span><span class="pal" data-t="27.841">más</span><span class="pal" data-t="28.018">del</span></div>
+        <div class="bloque" id="cap29"><span class="pal" data-t="28.130">mundo</span><span class="pal" data-t="28.355">de</span><span class="pal" data-t="28.387">la</span></div>
+        <div class="bloque" id="cap30"><span class="pal" data-t="28.419">inteligencia</span><span class="pal" data-t="28.902">artificial,</span><span class="pal" data-t="29.689">síguenos.</span></div>
+        <div class="bloque" id="cap31"><span class="pal" data-t="30.573">Pronto</span><span class="pal" data-t="30.911">estaremos</span><span class="pal" data-t="31.296">subiendo</span></div>
+        <div class="bloque" id="cap32"><span class="pal" data-t="31.650">nuevos</span><span class="pal" data-t="32.020">videos.</span></div>
+        <!-- /CAPTIONS -->
+      </div>
       <div id="siguenos" class="clip" data-composition-id="siguenos" data-composition-src="compositions/siguenos.html" data-start="26.565" data-duration="6.175" data-track-index="6"></div>
 
       <div id="tarjeta" class="clip" data-start="0" data-duration="32.74" data-track-index="3"></div>
@@ -180,6 +226,53 @@
         tl.to("#persona", { opacity: 0, duration: 0.1, ease: "none" }, Math.max(0, t - 0.1));
         tl.to("#persona", { opacity: 1, duration: 0.1, ease: "none" }, t);
       });
+      // Captions: cada bloque entra con su primera palabra y sale al empezar el siguiente; la palabra activa cambia
+      // en el instante en que AssemblyAI la oye empezar (tiempos ya remapeados al cuerpo).
+      const capBloque = (sel, t0, t1) => {
+        const b = document.querySelector(sel); if (!b) return;
+        const spans = Array.from(b.querySelectorAll(".pal"));
+        tl.fromTo(b, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.12, ease: "back.out(2)" }, t0);
+        tl.set(b, { opacity: 0 }, t1);
+        spans.forEach((s, j) => {
+          tl.set(s, { className: "pal on" }, parseFloat(s.dataset.t));
+          if (j + 1 < spans.length) tl.set(s, { className: "pal" }, parseFloat(spans[j + 1].dataset.t));
+        });
+      };
+      // CAPTIONS-TL
+      capBloque("#cap0", 0.340, 1.606);
+      capBloque("#cap1", 1.606, 2.648);
+      capBloque("#cap2", 2.648, 3.386);
+      capBloque("#cap3", 3.386, 3.899);
+      capBloque("#cap4", 3.899, 4.283);
+      capBloque("#cap5", 4.283, 5.614);
+      capBloque("#cap6", 5.614, 6.576);
+      capBloque("#cap7", 6.576, 7.633);
+      capBloque("#cap8", 7.633, 8.050);
+      capBloque("#cap9", 8.050, 8.659);
+      capBloque("#cap10", 8.659, 9.717);
+      capBloque("#cap11", 9.717, 10.262);
+      capBloque("#cap12", 10.262, 11.545);
+      capBloque("#cap13", 11.545, 13.228);
+      capBloque("#cap14", 13.228, 13.965);
+      capBloque("#cap15", 13.965, 16.049);
+      capBloque("#cap16", 16.049, 16.995);
+      capBloque("#cap17", 16.995, 18.037);
+      capBloque("#cap18", 18.037, 19.322);
+      capBloque("#cap19", 19.322, 20.383);
+      capBloque("#cap20", 20.383, 21.830);
+      capBloque("#cap21", 21.830, 22.874);
+      capBloque("#cap22", 22.874, 23.582);
+      capBloque("#cap23", 23.582, 24.466);
+      capBloque("#cap24", 24.466, 24.980);
+      capBloque("#cap25", 24.980, 25.446);
+      capBloque("#cap26", 25.446, 26.876);
+      capBloque("#cap27", 26.876, 27.423);
+      capBloque("#cap28", 27.423, 28.130);
+      capBloque("#cap29", 28.130, 28.419);
+      capBloque("#cap30", 28.419, 30.573);
+      capBloque("#cap31", 30.573, 31.650);
+      capBloque("#cap32", 31.650, 32.733);
+      // /CAPTIONS-TL
       window.__timelines["main"] = tl;
       tl.seek(0);
     </script>

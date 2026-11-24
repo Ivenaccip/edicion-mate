@@ -19,6 +19,15 @@ cd "$DIR"
 if [ -f cuerpo_limpio.wav ]; then ffmpeg -v error -y -i cuerpo_limpio.wav -c:a aac -ac 1 -b:a 160k voz_cuerpo.m4a; else ffmpeg -v error -y -i cuerpo_576.mp4 -vn -c:a aac -ac 1 -b:a 160k voz_cuerpo.m4a; fi
 # 3) palabras en tiempo del cuerpo (solo captions)
 python "$V/remapear_palabras.py" raw.palabras.json cuerpo_576.aplicado.json cuerpo.palabras.json
+# 3b) captions desde las palabras remapeadas, inyectadas en la composición entre marcadores
+python "$V/captions.py" cuerpo.palabras.json captions.html captions.js --fin "$(python -c "import json;print(json.load(open('cuerpo_576.aplicado.json'))['duracion_salida_s'])")"
+python - "$C/index.html" captions.html captions.js <<'PY'
+import re, sys
+p, fh, fj = sys.argv[1:4]; s = open(p).read()
+s = re.sub(r'(<!-- CAPTIONS -->\n).*?(\s*<!-- /CAPTIONS -->)', lambda m: m.group(1) + open(fh).read() + m.group(2), s, flags=re.S)
+s = re.sub(r'(// CAPTIONS-TL\n).*?(\s*// /CAPTIONS-TL)', lambda m: m.group(1) + open(fj).read() + m.group(2), s, flags=re.S)
+open(p, 'w').write(s); print('captions inyectadas')
+PY
 # 4) assets al proyecto Hyperframes (la composición es la plantilla del repo; los assets por video no van al repo)
 mkdir -p "$C/assets/576"; cp persona_1080_alfa.webm "$C/assets/persona_cuerpo_alfa.webm"; cp persona_576_alfa.webm "$C/assets/576/persona_cuerpo_alfa.webm"
 cp voz_cuerpo.m4a "$C/assets/voz_cuerpo.m4a"; cp voz_cuerpo.m4a "$C/assets/576/voz_cuerpo.m4a"

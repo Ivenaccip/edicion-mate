@@ -6,7 +6,7 @@
 
 Etapas (cada una se salta si su salida ya existe, salvo --forzar):
   1 transcribir  pipeline/transcribir.py --backend assemblyai          -> raw.palabras.json
-  2 plan         prototipos/editor-pausas/editor_pausas.py             -> raw.edl.json   (la retoma sigue siendo manual)
+  2 plan         editor_pausas.py (pausas, señal) + seleccionar_tomas.py (tomas, transcript) -> raw.edl.json, tomas.md
   3 cortar       pipeline/cortar_video.py --fade 0 (576 y 1080)        -> cuerpo_576.mp4, cuerpo_1080.mp4, cuerpo_576.aplicado.json
   4 separar      .venv-df/bin/python pipeline/separar_voz.py           -> cuerpo_voz.wav
   5 limpiar      pipeline/limpiar_audio.py (parámetros del estándar)   -> cuerpo_limpio.wav (+ cuerpo_576 remuxeado)
@@ -36,10 +36,16 @@ def main():
     falta = lambda *n: a.forzar or not all((d / x).exists() for x in n)
 
     if falta("raw.palabras.json"):
-        run([VENV, REPO / "pipeline/transcribir.py", raw, d / "raw.palabras.json", "--backend", "assemblyai"], d)
+        run([VENV, REPO / "pipeline/transcribir.py", raw, "--salida", d / "raw.palabras.json", "--backend", "assemblyai"], d)
     if falta("raw.edl.json"):
-        run([VENV, REPO / "prototipos/editor-pausas/editor_pausas.py", raw, d / "raw.edl.json"], d)
-        print("AVISO: la retoma inicial se marca a mano en raw.edl.json (ver pipeline/README.md); revisa antes de cortar.")
+        # el editor de pausas escucha un WAV y escribe <salida>.edl.json junto al audio editado (que no se usa)
+        run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-vn", "-ac", "1", "-ar", "48000", d / "raw_audio.wav"], d)
+        run([VENV, REPO / "prototipos/editor-pausas/editor_pausas.py", d / "raw_audio.wav", d / "raw.wav"], d)
+        shutil.move(d / "raw.edl.json", d / "raw.pausas.edl.json")
+        # retomas y apartes: elige la mejor toma de cada línea por transcript y corta en valles de energía
+        run([VENV, REPO / "pipeline/seleccionar_tomas.py", d / "raw.palabras.json", d / "raw_audio.wav", d / "raw.pausas.edl.json",
+             "--salida", d / "raw.edl.json", "--md", d / "tomas.md"], d)
+        print("AVISO: revisa tomas.md (plan de tomas) antes de dar por bueno el corte; --forzar-toma en seleccionar_tomas.py cambia una elección.")
     rot = ["--rotar", a.rotar] if a.rotar else []
     if falta("cuerpo_576.mp4", "cuerpo_576.aplicado.json"):
         run([VENV, REPO / "pipeline/cortar_video.py", raw, d / "raw.edl.json", d / "cuerpo_576.mp4", *rot, "--encuadre", a.encuadre, "--fade", "0"], d)

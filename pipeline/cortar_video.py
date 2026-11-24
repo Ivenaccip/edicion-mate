@@ -9,8 +9,8 @@ Cómo corta:
   1. Lee los tramos "quitar" del EDL y calcula su complemento: los tramos a conservar.
   2. Redondea cada borde al frame más cercano (fps del video) para que video y audio
      compartan exactamente los mismos tiempos y no se acumule desfase.
-  3. Video: trim + concat en un solo filter_complex de FFmpeg, recodificado (el corte
-     exacto cae entre keyframes, -c copy no sirve).
+  3. Video: con --fade 0, select de los tramos en un solo paso; con fundidos, trim + concat (ojo: encola
+     frames y en 4K largo se queda sin memoria). Recodificado: el corte exacto cae entre keyframes, -c copy no sirve.
   4. Audio: se corta en numpy con los mismos tiempos redondeados. En cada empalme, fundido
      de salida en los últimos 7.5 ms del tramo anterior y fundido de entrada en los primeros
      7.5 ms del siguiente, SIN solapar (un crossfade solapado acortaría el audio y desfasaría
@@ -86,8 +86,16 @@ def main():
             if fi: f += f",fade=t=in:st=0:d={fi}"
             if fo: f += f",fade=t=out:st={d - fo:.4f}:d={fo}"
             return f
-        partes = "".join(f"[0:v]trim=start={x}:end={b},setpts=PTS-STARTPTS{fades(i, x, b)}[v{i}];" for i, (x, b) in enumerate(keep))
-        concat = "".join(f"[v{i}]" for i in range(len(keep))) + f"concat=n={len(keep)}:v=1:a=0[vc];"
+        if a.fade > 0:
+            # trim + concat: cada tramo es una rama y concat las consume en orden, así que ffmpeg encola los frames
+            # de las ramas que aún no toca. En 4K eso son ~13 MB por frame: con muchos tramos o raws largos se
+            # queda sin memoria (IMG_7924: 8 tramos, 116 s -> SIGKILL). Solo se usa cuando hay fundidos.
+            partes = "".join(f"[0:v]trim=start={x}:end={b},setpts=PTS-STARTPTS{fades(i, x, b)}[v{i}];" for i, (x, b) in enumerate(keep))
+            concat = "".join(f"[v{i}]" for i in range(len(keep))) + f"concat=n={len(keep)}:v=1:a=0[vc];"
+        else:
+            # corte seco: select en un solo paso (sin ramas ni colas), frames con t en [x, b) de cada tramo conservado
+            expr = "+".join(f"gte(t\\,{x})*lt(t\\,{b})" for x, b in keep)
+            partes = f"[0:v]select='{expr}',setpts=N/FRAME_RATE/TB[vc];"; concat = ""
         rot = {"ccw": "transpose=2,", "cw": "transpose=1,", "180": "transpose=1,transpose=1,"}.get(a.rotar, "")
         corto = 1080 if a.final else 576            # lado corto: 576p preview, 1080p final; sirve vertical y horizontal
         if a.encuadre:

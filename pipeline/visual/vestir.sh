@@ -4,14 +4,18 @@
 #                                   # assets al proyecto Hyperframes, render preview 576, auditor de llave
 #   vestir.sh <carpeta> --final     # además render 1080
 # Espera en <carpeta>: cuerpo_1080.mp4 (cortado con --fade 0), cuerpo_limpio.wav (audio final) o cuerpo_576.mp4,
-# cuerpo_576.aplicado.json, raw.palabras.json. La máscara de sombras es por set: <carpeta>/mascara_sombras.png
-# (si no existe se genera desde cuerpo_1080.mp4).
+# cuerpo_576.aplicado.json, raw.palabras.json. Por video se generan si faltan: llave.env (color y tolerancias medidas)
+# y mascara_sombras.png (zonas de verde en sombra); se pueden editar a mano y volver a correr.
 set -euo pipefail
 DIR=$(cd "$1" && pwd); MODO=${2:---preview}
 REPO=$(cd "$(dirname "$0")/../.." && pwd); V=$REPO/pipeline/visual; C=$REPO/composicion
 . "$REPO/.venv/bin/activate"
 cd "$DIR"
-[ -f mascara_sombras.png ] || python "$V/mascara_sombras.py" cuerpo_1080.mp4 mascara_sombras.png --rotar no --encuadre no --frames 16 --fraccion 0.75 --dist-min 0.05 --dilatar 20 --pluma 1
+# 0) llave por video: color clave y tolerancias medidas sobre el cuerpo (medir_verde.py); editable a mano en llave.env
+[ -f llave.env ] || python "$V/medir_verde.py" cuerpo_1080.mp4 llave --rotar no --encuadre no --frames 12
+. ./llave.env; export CLAVE SIM SIM_SOMBRA; echo "llave: CLAVE=$CLAVE SIM=$SIM SIM_SOMBRA=$SIM_SOMBRA TECHO=$TECHO"
+DMIN=$(python -c "print(round($SIM-0.035,3))"); DMAX=$(python -c "print(round($SIM_SOMBRA+0.03,3))")
+[ -f mascara_sombras.png ] || python "$V/mascara_sombras.py" cuerpo_1080.mp4 mascara_sombras.png --rotar no --encuadre no --frames 16 --fraccion 0.75 --clave "${CLAVE#0x}" --dist-min "$DMIN" --dist-max "$DMAX" --dilatar 20 --pluma 1
 # 1) llave sobre el cuerpo ya cortado (sin rotar/recortar: lo hizo cortar_video.py)
 [ -f persona_1080_alfa.webm ] || { MASC_ESCRITORIO=$([ -f mascara_escritorio.png ] && echo mascara_escritorio.png || true) "$V/quitar_verde_ffmpeg.sh" --cuerpo cuerpo_1080.mp4 "$C/assets/fondo_degradado.png" persona_1080 mascara_sombras.png; }
 [ -f persona_576_alfa.webm ] || ffmpeg -v error -y -c:v libvpx-vp9 -i persona_1080_alfa.webm -vf "scale=576:1024:flags=lanczos" -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 26 -row-mt 1 -cpu-used 5 -an persona_576_alfa.webm
@@ -44,6 +48,6 @@ unset PUPPETEER_EXECUTABLE_PATH CHROME_PATH CHROME_BIN || true
 ( cd "$C/preview" && rm -rf /tmp/hyperframes-extract-cache-0/hfcache-v10-* && npx -y hyperframes@0.9.72 render -o "$DIR/preview_576.mp4" --quiet 2>&1 | grep -i ' error' || true )
 # 6) auditor de la llave sobre el cuerpo (ventana de 3 s en el centro)
 DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 cuerpo_576.mp4); INI=$(python -c "print(max(0, $DUR/2-1.5))")
-python "$V/auditar_llave.py" cuerpo_1080.mp4 persona_1080_alfa.webm --rotar no --encuadre no --inicio-s "$INI" --dur-s 3 --umbral 0.085 --md pendientes_llave.md --json auditoria_llave.json || true
+python "$V/auditar_llave.py" cuerpo_1080.mp4 persona_1080_alfa.webm --rotar no --encuadre no --inicio-s "$INI" --dur-s 3 --clave "${CLAVE#0x}" --umbral "$SIM" --global-max "$TECHO" --md pendientes_llave.md --json auditoria_llave.json || true
 if [ "$MODO" = "--final" ]; then ( cd "$C" && rm -rf /tmp/hyperframes-extract-cache-0/hfcache-v10-* && npx -y hyperframes@0.9.72 render -o "$DIR/final_1080.mp4" --quiet 2>&1 | grep -i ' error' || true ); fi
 ls -la "$DIR" | grep -E 'preview_576|final_1080|persona|pendientes'

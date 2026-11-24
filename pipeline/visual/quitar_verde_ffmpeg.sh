@@ -13,7 +13,9 @@ if [ "$1" = "--cuerpo" ]; then
 else
   RAW=$1; INI=$2; DUR=$3; FONDO=$4; OUT=$5; MASC=${6:-}; PREP="transpose=2,crop=iw:iw*16/9,scale=1080:1920,format=rgba"; SEEK=(-ss "$INI" -t "$DUR")
 fi
-CLAVE=0x1e7032; SIM=0.085; SIM_SOMBRA=0.11
+# Llave por video (medir_verde.py -> llave.env): CLAVE color, SIM tolerancia global, SIM_SOMBRA dentro de la máscara.
+# Por defecto, la de IMG_7889 (verde oscuro).
+CLAVE=${CLAVE:-0x1e7032}; SIM=${SIM:-0.085}; SIM_SOMBRA=${SIM_SOMBRA:-0.11}
 # Máscara de escritorio opcional (MASC_ESCRITORIO=ruta.png): fuerza opaco bajo la línea de la mesa, donde reflejos
 # verdes (pantalla del celular, cuero) abrirían huecos. La cámara no se mueve, así que es fija por set.
 MASC_ESCRITORIO=${MASC_ESCRITORIO:-}

@@ -3,6 +3,7 @@
 | Script | Entrada | Salida |
 |---|---|---|
 | `transcribir.py` | audio/video | `*.palabras.json` (tiempos por palabra; backends `whisper` o `assemblyai`) |
+| `seleccionar_tomas.py` | `raw.palabras.json` + `raw_audio.wav` + EDL de pausas | `raw.edl.json` (mejor toma por línea, retomas y apartes fuera) + `tomas.md` (plan legible) |
 | `cortar_video.py` | `raw.mp4` + `raw.edl.json` | `cuerpo.mp4` (solo cortes) + `cuerpo.aplicado.json` |
 
 ```bash
@@ -136,3 +137,18 @@ Infra: torch rompe el entorno principal (baja numpy), por eso va en `.venv-df`. 
 están en GitHub, que el proxy del entorno bloquea aunque el host esté permitido (GitHub va por otro
 canal); se usa la copia Apache-2.0 de Hugging Face `fal/DeepFilterNet3` convertida a checkpoint.
 Hosts añadidos: download.pytorch.org, download-r2.pytorch.org.
+
+## Segundo video real: IMG_7924.MP4 (24 nov 2026), grabado a varias tomas
+4K 4096x2160, 29.97 fps, 115.9 s, 1.76 GB, mismo set (rotar ccw). 3 líneas de guion repetidas 2, 9 y 5 veces,
+con apartes al equipo y charla final. Lo que cambió en el pipeline por este video:
+
+| Problema | Arreglo |
+|---|---|
+| `editar.py` llamaba mal al transcriptor (salida posicional) y al editor de pausas (le pasaba el MP4) | Transcriptor con `--salida`; el editor recibe `raw_audio.wav` y su EDL queda en `raw.pausas.edl.json`. |
+| Con 8 tramos sobre 4K, `trim`+`concat` encoló miles de frames y ffmpeg murió por memoria (SIGKILL) | Con `--fade 0` el corte usa `select` en un solo paso (sin ramas). `trim`+`concat` solo si hay fundidos. |
+| La retoma era manual y aquí había 19 tomas | `seleccionar_tomas.py`: tomas por reinicio de las mismas 3 palabras / fin de oración / pausa; líneas por parecido; mejor toma = completa > sin tartamudeo > más larga > la última; apartes (una toma entre dos tomas de la misma línea) fuera; charla final incompleta fuera; bordes en el valle de energía (20 ms) de la pausa que rodea la toma. Plan en `tomas.md`; `--forzar-toma LINEA:TOMA` para cambiar una elección. |
+| El verde es distinto en cada grabación (este: claro, UV 101,79; IMG_7889: oscuro, UV 109,94) | `pipeline/visual/medir_verde.py` mide el clave y propone SIM / SIM_SOMBRA / TECHO en `llave.env`; `vestir.sh` lo genera si falta y lo pasa al keyer, a la máscara y al auditor. |
+| Máscara y auditor medían la distancia UV en un espacio distinto al de `chromakey` (rgb24 recalculado / cv2) | `verde_util.py`: todos leen los planos U/V nativos (yuv444p) y convierten el clave con la misma matriz que `chromakey`. |
+
+Resultado: 273 palabras → 56; 3 tramos; cuerpo 18.23 s (esperado 18.285, −1.55 frames por redondeo + 1 frame de
+cola). Tomas elegidas: 8.05–11.87 s, 58.14–66.63 s, 82.55–88.48 s del raw.

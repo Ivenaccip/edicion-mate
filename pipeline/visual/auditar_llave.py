@@ -20,12 +20,10 @@ Cómo decide:
 Uso:
   auditar_llave.py raw.mp4 llave_alfa.webm --inicio-s 12 --dur-s 3 --umbral 0.08 --json salida.json --md pendientes.md
 """
-import argparse, json, subprocess, sys
+import argparse
+import json, subprocess, sys
+from verde_util import leer_yuv, rgb_de_yuv, uv_de_hex
 import numpy as np
-
-def uv_clave(rgb):
-    r, g, b = rgb
-    return (-0.169 * r - 0.331 * g + 0.5 * b + 128, 0.5 * r - 0.419 * g - 0.081 * b + 128)
 
 def leer_frames(cmd, w, h, canales):
     raw = subprocess.run(cmd, capture_output=True).stdout
@@ -65,13 +63,12 @@ def main():
     sospechosas = np.argwhere((tasa_c > a.tasa_max) & (media_c > 0.03) & (media_c < 0.97))
 
     # 2) verde en el raw, muestreado
-    rgb = leer_frames(["ffmpeg", "-v", "error", "-ss", str(a.inicio_s), "-t", str(a.dur_s), "-i", a.raw, "-vf", ",".join(prep + [f"fps={a.fps_muestra}", "format=rgb24"]), "-f", "rawvideo", "-"], W, H, 3).astype(np.float32)
-    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-    u = -0.169 * r - 0.331 * g + 0.5 * b + 128; v = 0.5 * r - 0.419 * g - 0.081 * b + 128
-    ku, kv = uv_clave(tuple(int(a.clave[i:i + 2], 16) for i in (0, 2, 4)))
+    # planos U/V nativos del raw: el mismo espacio en que chromakey mide la distancia (verde_util.py)
+    luma, u, v = leer_yuv(a.raw, prep + [f"fps={a.fps_muestra}"], W, H, antes=("-ss", str(a.inicio_s)), dur=a.dur_s)
+    r, g, b = rgb_de_yuv(luma, u, v)
+    ku, kv = uv_de_hex(a.clave)
     dist = np.sqrt((u - ku) ** 2 + (v - kv) ** 2) / 255.0
     verdoso = g > 1.6 * np.maximum(r, b)
-    luma = 0.299 * r + 0.587 * g + 0.114 * b
     movimiento = luma.std(axis=0)                            # desviación temporal por píxel: alta donde la persona se mueve
     estatico = movimiento <= a.mov_max
     frac_verde = verdoso.mean(axis=0)                        # fracción de muestras en que el píxel es verdoso

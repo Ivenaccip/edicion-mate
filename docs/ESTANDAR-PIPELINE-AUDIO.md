@@ -8,7 +8,7 @@ La capa visual (pantalla verde, fondos, captions, Hyperframes) recibe ese cuerpo
 | # | Paso | Script | Entrada | Salida |
 |---|---|---|---|---|
 | 1 | Transcribir | `pipeline/transcribir.py --backend assemblyai` | `raw.mp4` o `.wav` | `raw.palabras.json` (palabras con `ini`/`fin` en s, muletillas incluidas) |
-| 2 | Plan de cortes | `prototipos/editor-pausas/editor_pausas.py` (+ retoma por transcript, hoy manual) | audio del raw | `raw.edl.json` (tramos `quitar`) |
+| 2 | Plan de cortes | `prototipos/editor-pausas/editor_pausas.py` (pausas, por señal) + `pipeline/seleccionar_tomas.py` (tomas, por transcript; bordes por señal) | audio del raw + `raw.palabras.json` | `raw.edl.json` (tramos `quitar`) + `tomas.md` |
 | 3 | Cortar video | `pipeline/cortar_video.py --rotar ccw --encuadre 9:16 --fade 0.1` | `raw.mp4` + `raw.edl.json` | `cuerpo_576.mp4` (preview) o `--final` 1080x1920; `cuerpo.aplicado.json` |
 | 4 | Separar voz | `.venv-df/bin/python pipeline/separar_voz.py` (DeepFilterNet3) | audio del cuerpo | `cuerpo_voz.wav` |
 | 5 | Limpiar | `pipeline/limpiar_audio.py --hp-hz 100 --viento-hz 300 --viento-db 3 9 --resp-db -18` | `cuerpo_voz.wav` + `palabras.json` | `cuerpo_limpio.wav` + `cuerpo_limpio.limpieza.json`; con `--video` remuxea |
@@ -60,7 +60,7 @@ Los tiempos por palabra tienen error de hasta ±170 ms: sirven para captions, no
 
 ## Lo que falta en esta capa
 - `pipeline/editar.py raw.mp4`: un comando que encadene 1–6 (paso 4 del handoff).
-- Detector de retomas automático (hoy la retoma se marcó a mano con el transcript).
+- ~~Detector de retomas automático~~ hecho: `pipeline/seleccionar_tomas.py` (24 nov, validado con IMG_7924: 19 tomas, 3 líneas).
 - Render final con audio estéreo.
 - Exportador OTIO/EDL con marcadores para revisión manual en DaVinci (opcional).
 

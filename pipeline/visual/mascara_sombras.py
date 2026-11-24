@@ -14,10 +14,7 @@ Luego dilatación y pluma para que el borde de la zona no se note.
 Uso: mascara_sombras.py raw.mp4 mascara.png [--frames 12] [--ancho 1080] [--rotar ccw --encuadre 9:16]
 """
 import argparse, cv2, numpy as np
-
-def uv_clave(rgb):
-    r, g, b = rgb
-    return (-0.169 * r - 0.331 * g + 0.5 * b + 128, 0.5 * r - 0.419 * g - 0.081 * b + 128)
+from verde_util import prep_vf, muestras_yuv, rgb_de_yuv, uv_de_hex
 
 def preparar(fr, rotar, encuadre, ancho):
     if rotar == "ccw": fr = cv2.rotate(fr, cv2.ROTATE_90_COUNTERCLOCKWISE)
@@ -30,25 +27,19 @@ def preparar(fr, rotar, encuadre, ancho):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("raw"); ap.add_argument("salida")
-    ap.add_argument("--frames", type=int, default=12); ap.add_argument("--ancho", type=int, default=1080)
+    ap.add_argument("--frames", type=int, default=12); ap.add_argument("--ancho", type=int, default=1080, help="salida 9:16: ancho x ancho*16/9")
     ap.add_argument("--rotar", choices=["no", "ccw"], default="ccw"); ap.add_argument("--encuadre", choices=["no", "9:16"], default="9:16")
     ap.add_argument("--clave", default="1e7032"); ap.add_argument("--dist-min", type=float, default=0.065); ap.add_argument("--dist-max", type=float, default=0.14)
     ap.add_argument("--fraccion", type=float, default=0.9, help="fracción de frames en que el píxel debe cumplir el criterio")
     ap.add_argument("--dilatar", type=int, default=10); ap.add_argument("--pluma", type=float, default=1)
     a = ap.parse_args()
-    ku, kv = uv_clave(tuple(int(a.clave[i:i + 2], 16) for i in (0, 2, 4)))
-    cap = cv2.VideoCapture(a.raw); n = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    acum = None; usados = 0
-    for k in range(a.frames):
-        cap.set(cv2.CAP_PROP_POS_FRAMES, int((k + 0.5) * n / a.frames)); ok, fr = cap.read()
-        if not ok: continue
-        fr = preparar(fr, a.rotar, a.encuadre, a.ancho).astype(np.float32)
-        b, g, r = fr[..., 0], fr[..., 1], fr[..., 2]
-        yuv = cv2.cvtColor(fr.astype(np.uint8), cv2.COLOR_BGR2YUV).astype(np.float32)
-        d = np.sqrt((yuv[..., 1] - ku) ** 2 + (yuv[..., 2] - kv) ** 2) / 255.0
-        verdoso = g > 1.6 * np.maximum(r, b)
-        m = (verdoso & (d >= a.dist_min) & (d <= a.dist_max)).astype(np.float32)
-        acum = m if acum is None else acum + m; usados += 1
+    ku, kv = uv_de_hex(a.clave)
+    # planos U/V nativos (el mismo espacio que compara chromakey), ver verde_util.py
+    Y, U, V = muestras_yuv(a.raw, a.frames, prep_vf(a.rotar, a.encuadre, a.ancho, a.ancho * 16 // 9))
+    r, g, b = rgb_de_yuv(Y, U, V)
+    d = np.sqrt((U - ku) ** 2 + (V - kv) ** 2) / 255.0
+    verdoso = g > 1.6 * np.maximum(r, b)
+    acum = (verdoso & (d >= a.dist_min) & (d <= a.dist_max)).astype(np.float32).sum(axis=0); usados = Y.shape[0]
     acum = (acum / max(usados, 1) >= a.fraccion).astype(np.uint8)
     # limpiar motas y ensanchar
     acum = cv2.morphologyEx(acum, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9)))

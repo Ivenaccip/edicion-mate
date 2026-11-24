@@ -39,7 +39,7 @@
   },
   {
    "quitar": [
-    88.483,
+    86.937,
     116.861
    ],
    "accion": "quitar cola (por transcript)"
@@ -56,7 +56,7 @@
   ],
   [
    82.547,
-   88.483
+   86.937
   ]
  ],
  "nota": "EDL combinado por seleccionar_tomas.py: mejor toma por línea (transcript) + pausas acortadas dentro de las tomas (señal)"

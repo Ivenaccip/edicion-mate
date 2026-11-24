@@ -17,7 +17,8 @@ Pasos:
                de la toma, dentro de los 0.6 s previos; fin igual tras la última palabra. Se dejan >= 0.15 s de aire.
   5 EDL      = quitar = complemento de las tomas elegidas + las pausas acortadas del editor que caen dentro de ellas.
 Uso: seleccionar_tomas.py raw.palabras.json raw_audio.wav raw.edl.json [--salida raw.edl.json] [--md tomas.md]
-    (sin --salida solo imprime el plan). --forzar-toma LINEA:TOMA elige a mano (índices del plan).
+    (sin --salida solo imprime el plan). --forzar-toma LINEA:TOMA elige a mano (índices del plan);
+    --terminar-en LINEA:PALABRA recorta la toma elegida tras esa palabra (corte en el valle entre palabras).
 """
 import argparse, json, re, unicodedata
 import numpy as np, soundfile as sf
@@ -78,12 +79,14 @@ def main():
     ap.add_argument("palabras"); ap.add_argument("audio"); ap.add_argument("edl_pausas")
     ap.add_argument("--salida"); ap.add_argument("--md"); ap.add_argument("--aire", type=float, default=0.15)
     ap.add_argument("--forzar-toma", action="append", default=[], help="LINEA:TOMA (índices del plan)")
+    ap.add_argument("--terminar-en", action="append", default=[], help="LINEA:PALABRA, la toma elegida termina tras la última PALABRA (p. ej. 2:llegar)")
     a = ap.parse_args()
     d = json.load(open(a.palabras)); pal = d["palabras"] if isinstance(d, dict) else d
     x, sr = sf.read(a.audio, dtype="float32");  x = x.mean(axis=1) if x.ndim > 1 else x
     dur = len(x) / sr
     tomas = dividir_tomas(pal); lineas, apartes = agrupar(pal, tomas)
     forzadas = {int(f.split(":")[0]): int(f.split(":")[1]) for f in a.forzar_toma}
+    terminar = {int(f.split(":")[0]): norm(f.split(":", 1)[1]) for f in a.terminar_en}
     plan, elegidas, md = [], [], []
     for li, L in enumerate(lineas):
         n_max = max(t[1] - t[0] for t in L); filas = []
@@ -93,7 +96,12 @@ def main():
         if li in forzadas: mejor = filas[forzadas[li]]
         ultima_incompleta = len(L) == 1 and not mejor[3] and L[0][1] == len(pal)
         plan.append((li, L, filas, mejor, ultima_incompleta))
-        if not ultima_incompleta: elegidas.append(mejor[2])
+        t = mejor[2]
+        if li in terminar:   # recorte editorial: la toma termina tras la última aparición de la palabra
+            js = [j for j in range(t[0], t[1]) if norm(pal[j]["w"]) == terminar[li]]
+            if not js: raise SystemExit(f"--terminar-en: '{terminar[li]}' no está en la toma elegida de la línea {li}")
+            t = (t[0], js[-1] + 1); md.append(f"- línea {li}: termina en '{pal[js[-1]]['w']}' ({pal[js[-1]]['fin']:.2f} s) por --terminar-en")
+        if not ultima_incompleta: elegidas.append(t)
     # bordes por señal
     tramos = []
     for (i0, i1) in elegidas:

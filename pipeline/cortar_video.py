@@ -53,10 +53,16 @@ def cortar_audio(path, keep, out_wav, fade_s=FADE_CORTE_S, cola_s=0.0):
         if i > 0 and len(p) >= k:               p[:k]  *= np.linspace(0, 1, k, dtype=np.float32)
         if i < len(piezas) - 1 and len(p) >= k: p[-k:] *= np.linspace(1, 0, k, dtype=np.float32)
     if cola_s > 0:
-        # cola: el final no se corta en seco. Se añaden cola_s de "aire" tomados del último tramo (los últimos cola_s,
-        # que son la pausa tras la última palabra) invertidos para que empalmen sin salto, con fundido a cero.
-        n = int(cola_s * sr); aire = piezas[-1][-n:][::-1].copy() if len(piezas[-1]) >= n else np.zeros(n, np.float32)
-        piezas.append(aire * np.linspace(1, 0, len(aire), dtype=np.float32))
+        # cola: el final no se corta en seco. Se añaden cola_s de "aire" (tono de sala) con fundido a cero, para que
+        # la última frase se oiga terminar. El aire sale de los últimos 80 ms del tramo (la pausa tras la última
+        # palabra, que el selector de tomas garantiza callada), en ping-pong (derecho, invertido, derecho...) para
+        # que no haya saltos, y nunca se toma voz. Fundido exponencial: suena a sala que se apaga, no a volumen bajando.
+        n = int(cola_s * sr); m = min(int(0.08 * sr), len(piezas[-1])); grano = piezas[-1][-m:].copy()
+        trozos, inv = [], False
+        while sum(len(t) for t in trozos) < n:
+            trozos.append(grano[::-1] if inv else grano); inv = not inv
+        aire = np.concatenate(trozos)[:n]
+        piezas.append(aire * np.exp(np.linspace(0, -6, n, dtype=np.float32)) * np.linspace(1, 0, n, dtype=np.float32))
     y = np.concatenate(piezas)
     sf.write(out_wav, y, sr)
     return len(y) / sr

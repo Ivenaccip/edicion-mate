@@ -279,3 +279,9 @@ separación de voz + limpieza (213 ráfagas de viento filtradas, 7 respiraciones
 cuerpo, llave sobre `cuerpo_1080.mp4`, persona a 576, preview 576 con Hyperframes y auditor de llave: APROBADO.
 Total ≈ 8 min (312 s hasta la llave + 176 s desde la persona 576 hasta el preview). El audio de la composición ya
 es `cuerpo_limpio.wav`, no el del raw.
+
+## Primer render final (24 nov 2026)
+`final_1080.mp4`: 1080x1920, 30 fps, 32.77 s, H.264 10.5 Mbps, AAC. Composición aprobada por el usuario en preview 576:
+cortes y voz por la cadena de audio (DeepFilterNet3 + limpiar_audio), llave por zonas con máscaras de sombra y
+escritorio, logo en la esquina inferior izquierda (360 px), campanita de arranque, contadores a 190/58 px con
+contorno, captions provisionales de 2-3 palabras sobre la tapa de la laptop (top 1360), dos whoosh, pops y click.

@@ -44,7 +44,7 @@ def tramos_conservar(quitar, duracion, fps):
     if cursor < duracion: keep.append((cursor, f(duracion) if f(duracion) <= duracion else duracion))
     return keep, desfase
 
-def cortar_audio(path, keep, out_wav, fade_s=FADE_CORTE_S):
+def cortar_audio(path, keep, out_wav, fade_s=FADE_CORTE_S, cola_s=0.0):
     x, sr = sf.read(path, dtype="float32")
     if x.ndim > 1: x = x.mean(axis=1)
     k = int(sr * max(fade_s, CROSSFADE_MS / 2000))         # el fundido de corte manda; mínimo 7.5 ms
@@ -52,6 +52,11 @@ def cortar_audio(path, keep, out_wav, fade_s=FADE_CORTE_S):
     for i, p in enumerate(piezas):
         if i > 0 and len(p) >= k:               p[:k]  *= np.linspace(0, 1, k, dtype=np.float32)
         if i < len(piezas) - 1 and len(p) >= k: p[-k:] *= np.linspace(1, 0, k, dtype=np.float32)
+    if cola_s > 0:
+        # cola: el final no se corta en seco. Se añaden cola_s de "aire" tomados del último tramo (los últimos cola_s,
+        # que son la pausa tras la última palabra) invertidos para que empalmen sin salto, con fundido a cero.
+        n = int(cola_s * sr); aire = piezas[-1][-n:][::-1].copy() if len(piezas[-1]) >= n else np.zeros(n, np.float32)
+        piezas.append(aire * np.linspace(1, 0, len(aire), dtype=np.float32))
     y = np.concatenate(piezas)
     sf.write(out_wav, y, sr)
     return len(y) / sr
@@ -63,6 +68,7 @@ def main():
     ap.add_argument("--rotar", choices=["ccw", "cw", "180"], help="rotar el video (celulares sin bandera de rotación)")
     ap.add_argument("--encuadre", choices=["9:16", "16:9", "1:1"], help="recortar centrado a esta proporción (tras rotar)")
     ap.add_argument("--fade", type=float, default=FADE_CORTE_S, help="segundos de fundido a negro de salida y de entrada en cada empalme (0 = corte seco)")
+    ap.add_argument("--cola-s", type=float, default=0.0, help="segundos de cola al final: último frame congelado y aire del final con fundido (el corte seco al final suena mal)")
     a = ap.parse_args()
 
     fps, w, h, dur = ffprobe(a.video)
@@ -78,7 +84,7 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         wav_full = Path(td) / "full.wav"; wav_cut = Path(td) / "cut.wav"
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", a.video, "-vn", "-ac", "1", str(wav_full)], check=True)
-        dur_audio = cortar_audio(wav_full, keep, wav_cut, a.fade)
+        dur_audio = cortar_audio(wav_full, keep, wav_cut, a.fade, a.cola_s)
 
         def fades(i, x, b):
             d = b - x; fo = a.fade if (i < len(keep) - 1 and d > 2 * a.fade) else 0; fi = a.fade if (i > 0 and d > 2 * a.fade) else 0
@@ -95,7 +101,8 @@ def main():
         else:
             # corte seco: select en un solo paso (sin ramas ni colas), frames con t en [x, b) de cada tramo conservado
             expr = "+".join(f"gte(t\\,{x})*lt(t\\,{b})" for x, b in keep)
-            partes = f"[0:v]select='{expr}',setpts=N/FRAME_RATE/TB[vc];"; concat = ""
+            cola = f",tpad=stop_mode=clone:stop_duration={a.cola_s}" if a.cola_s > 0 else ""
+            partes = f"[0:v]select='{expr}',setpts=N/FRAME_RATE/TB{cola}[vc];"; concat = ""
         rot = {"ccw": "transpose=2,", "cw": "transpose=1,", "180": "transpose=1,transpose=1,"}.get(a.rotar, "")
         corto = 1080 if a.final else 576            # lado corto: 576p preview, 1080p final; sirve vertical y horizontal
         if a.encuadre:
@@ -117,9 +124,9 @@ def main():
     info = {"entrada": a.video, "edl": a.edl, "salida": a.salida, "fps": fps, "modo": "final" if a.final else "preview", "rotar": a.rotar, "encuadre": a.encuadre,
             "duracion_original_s": round(dur, 3), "tramos_quitados": quitar, "tramos_conservados": [[x, b] for x, b in keep],
             "empalmes_en_salida_s": empalmes, "desfase_redondeo_max_ms": round(desfase * 1000, 2),
-            "duracion_esperada_s": round(esperado, 3), "duracion_audio_cortado_s": round(dur_audio, 3),
-            "duracion_salida_s": round(dur_out, 3), "diferencia_frames": round((dur_out - esperado) * fps, 2),
-            "crossfade_ms": CROSSFADE_MS, "fade_corte_s": a.fade}
+            "duracion_esperada_s": round(esperado + a.cola_s, 3), "duracion_audio_cortado_s": round(dur_audio, 3),
+            "duracion_salida_s": round(dur_out, 3), "diferencia_frames": round((dur_out - esperado - a.cola_s) * fps, 2),
+            "crossfade_ms": CROSSFADE_MS, "fade_corte_s": a.fade, "cola_s": a.cola_s}
     Path(a.salida).with_suffix(".aplicado.json").write_text(json.dumps(info, ensure_ascii=False, indent=1))
     print(f"{a.video} ({dur:.3f} s) -> {a.salida} ({dur_out:.3f} s), esperado {esperado:.3f} s, "
           f"diferencia {info['diferencia_frames']:+.2f} frames, desfase de redondeo máx {info['desfase_redondeo_max_ms']} ms")

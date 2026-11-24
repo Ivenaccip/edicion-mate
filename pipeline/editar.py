@@ -29,7 +29,7 @@ def main():
     ap.add_argument("raw"); ap.add_argument("--carpeta", help="carpeta de salida (por defecto <nombre del raw>/ junto al raw)")
     ap.add_argument("--rotar", choices=["ccw", "cw", "180"]); ap.add_argument("--encuadre", default="9:16")
     ap.add_argument("--hasta", choices=["cortes", "audio", "visual", "final"], default="visual")
-    ap.add_argument("--forzar", action="store_true")
+    ap.add_argument("--forzar", action="store_true"); ap.add_argument("--cola", type=float, default=0.1, help="s de cola al final del cuerpo (aire con fundido)")
     a = ap.parse_args()
     raw = Path(a.raw).resolve(); d = Path(a.carpeta).resolve() if a.carpeta else raw.parent / raw.stem
     d.mkdir(parents=True, exist_ok=True)
@@ -48,9 +48,9 @@ def main():
         print("AVISO: revisa tomas.md (plan de tomas) antes de dar por bueno el corte; --forzar-toma en seleccionar_tomas.py cambia una elección.")
     rot = ["--rotar", a.rotar] if a.rotar else []
     if falta("cuerpo_576.mp4", "cuerpo_576.aplicado.json"):
-        run([VENV, REPO / "pipeline/cortar_video.py", raw, d / "raw.edl.json", d / "cuerpo_576.mp4", *rot, "--encuadre", a.encuadre, "--fade", "0"], d)
+        run([VENV, REPO / "pipeline/cortar_video.py", raw, d / "raw.edl.json", d / "cuerpo_576.mp4", *rot, "--encuadre", a.encuadre, "--fade", "0", "--cola-s", str(a.cola)], d)
     if falta("cuerpo_1080.mp4"):
-        run([VENV, REPO / "pipeline/cortar_video.py", raw, d / "raw.edl.json", d / "cuerpo_1080.mp4", *rot, "--encuadre", a.encuadre, "--fade", "0", "--final"], d)
+        run([VENV, REPO / "pipeline/cortar_video.py", raw, d / "raw.edl.json", d / "cuerpo_1080.mp4", *rot, "--encuadre", a.encuadre, "--fade", "0", "--cola-s", str(a.cola), "--final"], d)
     if a.hasta == "cortes": return
     if falta("cuerpo_audio.wav"):
         run(["ffmpeg", "-v", "error", "-y", "-i", d / "cuerpo_576.mp4", "-vn", "-ac", "1", "-ar", "48000", d / "cuerpo_audio.wav"], d)

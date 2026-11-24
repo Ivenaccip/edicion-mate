@@ -1,0 +1,23 @@
+{
+ "video": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/raw2/IMG_7924.MP4",
+ "frames": 8,
+ "verde_pct": 55.5,
+ "clave_uv": [
+  101.0,
+  79.0
+ ],
+ "clave_luma": 131.0,
+ "clave_hex": "3eaf53",
+ "fondo_dist": {
+  "p50": 0.023,
+  "p95": 0.046,
+  "p99": 0.077,
+  "max": 0.2
+ },
+ "persona_dist_p1": 0.204,
+ "propuesta": {
+  "SIM": 0.097,
+  "SIM_SOMBRA": 0.127,
+  "TECHO": 0.164
+ }
+}

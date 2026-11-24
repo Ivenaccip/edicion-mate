@@ -1,0 +1,63 @@
+{
+ "entrada": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/IMG_7924/raw_audio.wav",
+ "salida": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/IMG_7924/raw.wav",
+ "sr": 48000,
+ "nivel_voz_dbfs": -26.0,
+ "duracion_original_s": 115.861,
+ "duracion_editada_s": 107.456,
+ "quitado_s": 8.3,
+ "pausas_encontradas": 28,
+ "pausas_acortadas": 8,
+ "reglas": {
+  "UMBRAL_DB": -35,
+  "MIN_PAUSA": 120,
+  "PAUSA_MAX": 450,
+  "PAUSA_OBJETIVO": 250,
+  "CROSSFADE": 15
+ },
+ "edl": [
+  {
+   "quitar": [
+    0.0,
+    8.05
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    11.868,
+    58.142
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    66.632,
+    82.547
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    88.483,
+    116.861
+   ],
+   "accion": "quitar cola (por transcript)"
+  }
+ ],
+ "tramos_elegidos": [
+  [
+   8.05,
+   11.868
+  ],
+  [
+   58.142,
+   66.632
+  ],
+  [
+   82.547,
+   88.483
+  ]
+ ],
+ "nota": "EDL combinado por seleccionar_tomas.py: mejor toma por línea (transcript) + pausas acortadas dentro de las tomas (señal)"
+}

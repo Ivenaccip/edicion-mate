@@ -3,7 +3,8 @@
 | Script | Entrada | Salida |
 |---|---|---|
 | `transcribir.py` | audio/video | `*.palabras.json` (tiempos por palabra; backends `whisper` o `assemblyai`) |
-| `seleccionar_tomas.py` | `raw.palabras.json` + `raw_audio.wav` + EDL de pausas | `raw.edl.json` (mejor toma por línea, retomas y apartes fuera) + `tomas.md` (plan legible) |
+| `proponer_guion.py` | `raw.palabras.json` | `guion.propuesto.txt` (borrador del guion final) + diagnóstico: ¿raw a varias tomas? |
+| `seleccionar_tomas.py` | `raw.palabras.json` + `raw_audio.wav` + EDL de pausas (+ `--guion guion.txt`) | `raw.edl.json` (mejor toma por frase del guion, o por línea repetida) + `tomas.md` |
 | `cortar_video.py` | `raw.mp4` + `raw.edl.json` | `cuerpo.mp4` (solo cortes) + `cuerpo.aplicado.json` |
 
 ```bash
@@ -152,3 +153,9 @@ con apartes al equipo y charla final. Lo que cambió en el pipeline por este vid
 
 Resultado: 273 palabras → 56; 3 tramos; cuerpo 18.23 s (esperado 18.285, −1.55 frames por redondeo + 1 frame de
 cola). Tomas elegidas: 8.05–11.87 s, 58.14–66.63 s, 82.55–88.48 s del raw.
+
+## Tercer video real: IMG_7922.MP4 (24 nov 2026), listado "3 productos de Meta" a varias tomas
+233 s, 487 palabras, 51 tomas, charla con el equipo entre tomas. El agrupado automático dejó 38 líneas y 111 s (no
+sirve: las líneas se dicen distinto en cada intento). Se escribió el guion final (8 frases) y `seleccionar_tomas.py
+--guion` encontró la toma exacta de cada una (parecido 1.00): cuerpo 44.7 s, 7 empalmes. De aquí salió la regla
+del estándar para raws a varias tomas (`proponer_guion.py` + alto para revisión + corte por guion).

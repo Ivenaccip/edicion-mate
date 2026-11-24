@@ -1,0 +1,188 @@
+{
+ "tomas": 51,
+ "descartadas": 23,
+ "grupos": 12,
+ "grupos_repetidos": 6,
+ "frases_propuestas": 12,
+ "a_varias_tomas": true,
+ "duracion_propuesta_s": 48.2,
+ "frases": [
+  {
+   "ini": 11.692,
+   "fin": 15.679,
+   "texto": "El Dios, los traigo en Meta versión 3."
+  },
+  {
+   "ini": 16.599,
+   "fin": 18.746,
+   "texto": "Meta, ay, el caso."
+  },
+  {
+   "ini": 64.902,
+   "fin": 72.406,
+   "texto": "Muse es tu nuevo asistente de inteligencia artificial enfocada a WhatsApp, Instagram y Facebook. Puede agarrar y puede generar cosas como este."
+  },
+  {
+   "ini": 74.618,
+   "fin": 75.961,
+   "texto": "3 nuevos productos de Meta."
+  },
+  {
+   "ini": 76.478,
+   "fin": 77.966,
+   "texto": "Número 1, Muse."
+  },
+  {
+   "ini": 138.865,
+   "fin": 140.678,
+   "texto": "número 2, Meta VR Glasses."
+  },
+  {
+   "ini": 141.148,
+   "fin": 149.266,
+   "texto": "El casco de Meta que vimos a inicios de pandemia hoy en día solo pesa 100 gramos, 5 veces menos que su generación anterior."
+  },
+  {
+   "ini": 159.699,
+   "fin": 162.268,
+   "texto": "Este, esta nueva generación, número 3."
+  },
+  {
+   "ini": 185.428,
+   "fin": 187.801,
+   "texto": "número 3, Ray-Ban Meta generación 3."
+  },
+  {
+   "ini": 188.25,
+   "fin": 198.179,
+   "texto": "Esta nueva generación promete ser más cómodo, tener una batería más larga y adicionalmente tiene un nuevo botón el cual puede usarse para llamar a tu asistente de inteligencia artificial."
+  },
+  {
+   "ini": 219.206,
+   "fin": 221.203,
+   "texto": "el mundo de la inteligencia artificial, síguenos."
+  },
+  {
+   "ini": 221.749,
+   "fin": 226.729,
+   "texto": "Si te quieres mantener actualizado en el mundo de la inteligencia artificial, síguenos."
+  }
+ ],
+ "descartes": [
+  {
+   "ini": 9.517,
+   "texto": "No me acuerdo cuándo salió.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 15.97,
+   "texto": "Ajá.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 19.505,
+   "texto": "Pero, ¿cuándo fue el evento?",
+   "motivo": "charla"
+  },
+  {
+   "ini": 25.546,
+   "texto": "Aunque bueno, no importa.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 32.822,
+   "texto": "En 3 nuevos productos de Meta, en el último mes se han ido publicando diversos productos que ha sacado el sitio oficial de- en el",
+   "motivo": "incompleta"
+  },
+  {
+   "ini": 42.47,
+   "texto": "último mes.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 52.396,
+   "texto": "Tu nuevo asistente de WhatsApp, Instagram,",
+   "motivo": "incompleta"
+  },
+  {
+   "ini": 57.178,
+   "texto": "Huawei.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 78.266,
+   "texto": "Tu nuevo asistente de inteligencia artificial que vive dentro de tu WhatsApp, tu Instagram y tu Facebook. Puede contestar mensajes, puede organizar tu perfil de Instagram y también puede buscar cosas en el Marketplace de Facebook por ti.",
+   "motivo": "tartamudeo"
+  },
+  {
+   "ini": 91.345,
+   "texto": "Número 2, número 2, Meta VR Glasses.",
+   "motivo": "tartamudeo"
+  },
+  {
+   "ini": 100.669,
+   "texto": "Ahora el casco de Meta que veíamos por todos lados, ahora solamente El casco de Meta.",
+   "motivo": "tartamudeo"
+  },
+  {
+   "ini": 115.422,
+   "texto": "Eh.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 117.25,
+   "texto": "Número 2, número 2, Meta VR Glasses.",
+   "motivo": "tartamudeo"
+  },
+  {
+   "ini": 120.793,
+   "texto": "El casco de Meta que vimos a inicios de pandemia ahora solo pesa 100 gramos, 5 veces menos que sus versiones y-",
+   "motivo": "incompleta"
+  },
+  {
+   "ini": 137.57,
+   "texto": "Número 2, Meta,",
+   "motivo": "incompleta"
+  },
+  {
+   "ini": 150.99,
+   "texto": "Número 3, número 3, Ray-Ban Meta, Ray-Ban Meta generación 3.",
+   "motivo": "tartamudeo"
+  },
+  {
+   "ini": 165.567,
+   "texto": "Esta nueva generación promete ser más cómodos, además de tener una batería más larga y poder contar con un asistente conectado y un botón específico para tus lentes y un botón específico para llamar a tu asistente.",
+   "motivo": "tartamudeo"
+  },
+  {
+   "ini": 181.293,
+   "texto": "Número 3, Ray-Ban Meta generación 3. Esta número 3,",
+   "motivo": "incompleta"
+  },
+  {
+   "ini": 213.85,
+   "texto": "Sí, no, ya.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 214.548,
+   "texto": "O si te quieres mantener actualizado en",
+   "motivo": "incompleta"
+  },
+  {
+   "ini": 227.813,
+   "texto": "Sí.",
+   "motivo": "charla"
+  },
+  {
+   "ini": 229.51,
+   "texto": "Como más informativo, ¿no?",
+   "motivo": "charla"
+  },
+  {
+   "ini": 230.95,
+   "texto": "Sí, es más como tipo noticiero.",
+   "motivo": "charla"
+  }
+ ]
+}

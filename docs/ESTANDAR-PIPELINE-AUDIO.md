@@ -8,7 +8,7 @@ La capa visual (pantalla verde, fondos, captions, Hyperframes) recibe ese cuerpo
 | # | Paso | Script | Entrada | Salida |
 |---|---|---|---|---|
 | 1 | Transcribir | `pipeline/transcribir.py --backend assemblyai` | `raw.mp4` o `.wav` | `raw.palabras.json` (palabras con `ini`/`fin` en s, muletillas incluidas) |
-| 2 | Plan de cortes | `prototipos/editor-pausas/editor_pausas.py` (pausas, por señal) + `pipeline/seleccionar_tomas.py` (tomas, por transcript; bordes por señal) | audio del raw + `raw.palabras.json` | `raw.edl.json` (tramos `quitar`) + `tomas.md` |
+| 2 | Plan de cortes | `editor_pausas.py` (pausas, por señal) + `proponer_guion.py` (diagnóstico y guion propuesto) + `seleccionar_tomas.py` (tomas por guion o automático; bordes por señal) | audio del raw + `raw.palabras.json` (+ `guion.txt` si es a varias tomas) | `raw.edl.json` + `tomas.md` + `guion.propuesto.txt` |
 | 3 | Cortar video | `pipeline/cortar_video.py --rotar ccw --encuadre 9:16 --fade 0.1` | `raw.mp4` + `raw.edl.json` | `cuerpo_576.mp4` (preview) o `--final` 1080x1920; `cuerpo.aplicado.json` |
 | 4 | Separar voz | `.venv-df/bin/python pipeline/separar_voz.py` (DeepFilterNet3) | audio del cuerpo | `cuerpo_voz.wav` |
 | 5 | Limpiar | `pipeline/limpiar_audio.py --hp-hz 100 --viento-hz 300 --viento-db 3 9 --resp-db -18` | `cuerpo_voz.wav` + `palabras.json` | `cuerpo_limpio.wav` + `cuerpo_limpio.limpieza.json`; con `--video` remuxea |
@@ -85,3 +85,25 @@ pendientes_llave.md       # auditor de la llave (pipeline/visual/auditar_llave.p
 final_1080.mp4            # solo con --hasta final
 ```
 Corrección aplicada al EDL de IMG_7889: inicio en 9.30 s (la tos quedaba dentro; AssemblyAI la etiquetó como "Y").
+
+
+## Regla de corte para raws grabados a varias tomas (24 nov 2026)
+
+Hay dos tipos de entrada y el comando único los distingue solo:
+
+| Tipo | Cómo se reconoce (`proponer_guion.py`) | Quién decide qué se queda | Cómo se corta |
+|---|---|---|---|
+| **Habla continua** (IMG_7889) | menos de 2 líneas repetidas | el agrupado automático de `seleccionar_tomas.py` (retomas y apartes fuera) | sigue sin parar |
+| **A varias tomas** (IMG_7924, IMG_7922) | 2 o más líneas dichas más de una vez | **una persona**, con un guion de una frase por línea | `editar.py` se detiene (código 3) hasta que exista `guion.txt` o se pase `--guion`; luego `seleccionar_tomas.py --guion` toma la toma más parecida a cada frase (difflib ≥ 0.6, empate: la última) |
+
+Pasos para el tipo "a varias tomas":
+1. `python pipeline/editar.py raw.mp4 --rotar ccw` transcribe, saca las pausas y escribe `guion.propuesto.txt` + `guion.diagnostico.json` en la carpeta del raw. Se detiene.
+2. Revisar `guion.propuesto.txt`: es un borrador (última toma completa de cada línea repetida, sin charla con el
+   equipo). En IMG_7922 trajo 4 líneas de más y en IMG_7924 2; se borran, se corrige el orden y se guarda como `guion.txt`.
+   Si una frase se quiere cortar antes de terminar, `--terminar-en LINEA:PALABRA` (IMG_7924: `2:llegar`).
+3. Volver a correr el mismo comando: corta por el guion. `tomas.md` dice qué toma se usó para cada frase y con qué parecido.
+
+Lo que no cambia: la señal sigue decidiendo dónde cae cada corte (voz real por energía, 0.25 s de silencio por
+empalme, el aire se acerca a la voz si no está callado), y las pausas acortadas del editor se aplican dentro de cada
+toma. Diagnóstico sobre los tres raws: IMG_7889 continuo (1 línea repetida → automático), IMG_7924 a varias tomas
+(3 líneas repetidas, 19 tomas → 3 frases), IMG_7922 a varias tomas (6 líneas repetidas, 51 tomas → 8 frases, 44.7 s).

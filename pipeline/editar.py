@@ -3,10 +3,14 @@
 
   python pipeline/editar.py raw.mp4 --rotar ccw --hasta visual        # preview 576 listo para el auditor
   python pipeline/editar.py raw.mp4 --rotar ccw --hasta final         # además render 1080
+  python pipeline/editar.py raw.mp4 --rotar ccw --guion guion.txt     # raw a varias tomas: corta por el guion revisado
 
 Etapas (cada una se salta si su salida ya existe, salvo --forzar):
   1 transcribir  pipeline/transcribir.py --backend assemblyai          -> raw.palabras.json
-  2 plan         editor_pausas.py (pausas, señal) + seleccionar_tomas.py (tomas, transcript) -> raw.edl.json, tomas.md
+  2 plan         editor_pausas.py (pausas, señal) + proponer_guion.py (¿a varias tomas? -> guion.propuesto.txt)
+                 + seleccionar_tomas.py (tomas por guion o automático, bordes por señal) -> raw.edl.json, tomas.md
+                 Si el raw es a varias tomas y no hay guion.txt (o --guion), se detiene con código 3 para que una
+                 persona revise el guion propuesto.
   3 cortar       pipeline/cortar_video.py --fade 0 (576 y 1080)        -> cuerpo_576.mp4, cuerpo_1080.mp4, cuerpo_576.aplicado.json
   4 separar      .venv-df/bin/python pipeline/separar_voz.py           -> cuerpo_voz.wav
   5 limpiar      pipeline/limpiar_audio.py (parámetros del estándar)   -> cuerpo_limpio.wav (+ cuerpo_576 remuxeado)
@@ -39,14 +43,25 @@ def main():
     if falta("raw.palabras.json"):
         run([VENV, REPO / "pipeline/transcribir.py", raw, "--salida", d / "raw.palabras.json", "--backend", "assemblyai"], d)
     if falta("raw.edl.json"):
-        # el editor de pausas escucha un WAV y escribe <salida>.edl.json junto al audio editado (que no se usa)
-        run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-vn", "-ac", "1", "-ar", "48000", d / "raw_audio.wav"], d)
-        run([VENV, REPO / "prototipos/editor-pausas/editor_pausas.py", d / "raw_audio.wav", d / "raw.wav"], d)
-        shutil.move(d / "raw.edl.json", d / "raw.pausas.edl.json")
-        # retomas y apartes: elige la mejor toma de cada línea por transcript y corta en valles de energía
+        if falta("raw.pausas.edl.json"):
+            # el editor de pausas escucha un WAV y escribe <salida>.edl.json junto al audio editado (que no se usa)
+            run(["ffmpeg", "-v", "error", "-y", "-i", raw, "-vn", "-ac", "1", "-ar", "48000", d / "raw_audio.wav"], d)
+            run([VENV, REPO / "prototipos/editor-pausas/editor_pausas.py", d / "raw_audio.wav", d / "raw.wav"], d)
+            shutil.move(d / "raw.edl.json", d / "raw.pausas.edl.json")
+        # ¿raw a varias tomas? proponer_guion.py escribe guion.propuesto.txt y el diagnóstico (dos o más líneas
+        # repetidas = a varias tomas). Regla del estándar: en ese caso el guion revisado por una persona decide.
+        run([VENV, REPO / "pipeline/proponer_guion.py", d / "raw.palabras.json", d / "guion.propuesto.txt", "--json", d / "guion.diagnostico.json"], d)
+        guion = Path(a.guion).resolve() if a.guion else (d / "guion.txt" if (d / "guion.txt").exists() else None)
+        diag = json.load(open(d / "guion.diagnostico.json"))
+        if diag["a_varias_tomas"] and not guion:
+            print(f"\nALTO: el raw se grabó a varias tomas ({diag['tomas']} tomas, {diag['grupos_repetidos']} líneas repetidas). "
+                  f"Revisa {d / 'guion.propuesto.txt'} (una frase por línea, en orden), guárdalo como {d / 'guion.txt'} y vuelve a correr; "
+                  "o pasa --guion archivo.txt. Sin guion no se corta un raw así.")
+            sys.exit(3)
+        # tomas: por guion (mejor toma de cada frase) o agrupado automático (líneas repetidas, apartes); bordes por señal
         run([VENV, REPO / "pipeline/seleccionar_tomas.py", d / "raw.palabras.json", d / "raw_audio.wav", d / "raw.pausas.edl.json",
-             "--salida", d / "raw.edl.json", "--md", d / "tomas.md", *(["--guion", Path(a.guion).resolve()] if a.guion else [])], d)
-        print("AVISO: revisa tomas.md (plan de tomas) antes de dar por bueno el corte; --forzar-toma en seleccionar_tomas.py cambia una elección.")
+             "--salida", d / "raw.edl.json", "--md", d / "tomas.md", *(["--guion", guion] if guion else [])], d)
+        print("AVISO: revisa tomas.md (plan de tomas) antes de dar por bueno el corte.")
     rot = ["--rotar", a.rotar] if a.rotar else []
     if falta("cuerpo_576.mp4", "cuerpo_576.aplicado.json"):
         run([VENV, REPO / "pipeline/cortar_video.py", raw, d / "raw.edl.json", d / "cuerpo_576.mp4", *rot, "--encuadre", a.encuadre, "--fade", "0", "--cola-s", str(a.cola)], d)

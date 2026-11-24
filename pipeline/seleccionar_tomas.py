@@ -74,15 +74,17 @@ def valle(x, sr, t0, t1):
     rms = np.sqrt((seg[: m * n].reshape(m, n) ** 2).mean(axis=1))
     return (a + (int(rms.argmin()) + 0.5) * n) / sr
 
+def callada(x, sr, t, umbral_db=-40):
+    """Ventana de 10 ms en t por debajo de umbral_db relativo al pico del archivo."""
+    n = sr // 100; a = int(t * sr); seg = x[a:a + n]; ref = float(np.abs(x).max()) or 1.0
+    return 20 * np.log10(max(float(np.sqrt((seg ** 2).mean())), 1e-9) / ref) < umbral_db
+
 def borde_voz(x, sr, t_asr, hacia, lim, umbral_db=-40, busca=0.35, hueco=0.06):
     """Dónde termina (hacia=+1) o empieza (hacia=-1) la voz de verdad cerca del tiempo que dio el transcriptor
     (sus fines e inicios van tarde ~0.1 s). Ventanas de 10 ms; "callada" = por debajo de umbral_db relativo al pico.
     Fin: si t_asr suena, avanza hasta el primer hueco callado de >= `hueco` s y devuelve su inicio; si t_asr ya
     está callado, retrocede hasta la última ventana con voz. Inicio: simétrico. Nunca pasa de `lim`."""
-    n = sr // 100; ref = float(np.abs(x).max()) or 1.0
-    def callada(t):
-        a = int(t * sr); seg = x[a:a + n]
-        return 20 * np.log10(max(float(np.sqrt((seg ** 2).mean())), 1e-9) / ref) < umbral_db
+    def callada(t): return globals()["callada"](x, sr, t, umbral_db)
     k = max(1, int(round(hueco / 0.01)))
     if hacia > 0:
         if callada(t_asr):
@@ -147,6 +149,11 @@ def main():
         sig_voz = borde_voz(x, sr, next_ini, -1, voz_fin) if i1 < len(pal) else dur
         ini = max(prev_voz + 0.01, voz_ini - mitad) if k > 0 else max(0.0, voz_ini - a.aire)
         fin = min(sig_voz - 0.01, voz_fin + (mitad if k < len(elegidas) - 1 else a.aire))
+        # si el aire que se deja no está callado (una respiración fuerte o un sonido sin transcribir pegado a la
+        # palabra), se acerca el corte a la voz hasta donde empieza lo callado: IMG_7924 traía un inhalo a -21 dB
+        # antes de "Si quieres" que quedaba dentro del empalme
+        while ini < voz_ini - 0.02 and not callada(x, sr, ini): ini += 0.01
+        while fin > voz_fin + 0.02 and not callada(x, sr, fin - 0.01): fin -= 0.01
         tramos.append([round(ini, 3), round(fin, 3)]); md.append(f"- tramo {k}: voz {voz_ini:.2f}-{voz_fin:.2f} s (transcriptor {p0['ini']:.2f}-{p1['fin']:.2f}), corte {ini:.3f}-{fin:.3f}")
     # quitar = complemento + pausas acortadas del editor dentro de cada tramo
     edl_p = json.load(open(a.edl_pausas)); quitar = []; cursor = 0.0

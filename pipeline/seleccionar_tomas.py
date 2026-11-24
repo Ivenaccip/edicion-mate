@@ -20,7 +20,7 @@ Uso: seleccionar_tomas.py raw.palabras.json raw_audio.wav raw.edl.json [--salida
     (sin --salida solo imprime el plan). --forzar-toma LINEA:TOMA elige a mano (índices del plan);
     --terminar-en LINEA:PALABRA recorta la toma elegida tras esa palabra (corte en el valle entre palabras).
 """
-import argparse, json, re, unicodedata
+import argparse, json, re, unicodedata, difflib
 import numpy as np, soundfile as sf
 
 def norm(w):
@@ -113,21 +113,35 @@ def main():
     ap.add_argument("--pausa-empalme", type=float, default=0.25, help="s de silencio total en cada empalme (regla del editor de pausas: 250 ms)")
     ap.add_argument("--forzar-toma", action="append", default=[], help="LINEA:TOMA (índices del plan)")
     ap.add_argument("--terminar-en", action="append", default=[], help="LINEA:PALABRA, la toma elegida termina tras la última PALABRA (p. ej. 2:llegar)")
+    ap.add_argument("--guion", help="archivo de texto con el guion final, una frase por línea: para cada frase se elige la toma más parecida (difflib >= 0.6; empate: la última). Sustituye al agrupado automático; sirve cuando las tomas no repiten las mismas palabras o hay mucha charla con el equipo")
     a = ap.parse_args()
     d = json.load(open(a.palabras)); pal = d["palabras"] if isinstance(d, dict) else d
     x, sr = sf.read(a.audio, dtype="float32");  x = x.mean(axis=1) if x.ndim > 1 else x
     dur = len(x) / sr
-    tomas = dividir_tomas(pal); lineas, apartes = agrupar(pal, tomas)
+    md = []; tomas = dividir_tomas(pal)
+    if a.guion:
+        # modo guion: cada frase del guion se empareja con la toma más parecida (texto normalizado)
+        frases = [l.strip() for l in open(a.guion, encoding="utf-8") if l.strip()]
+        txt = lambda t: " ".join(norm(p["w"]) for p in pal[t[0]:t[1]])
+        lineas, apartes, usadas = [], [], set()
+        for f in frases:
+            nf = " ".join(norm(w) for w in f.split())
+            cand = [(difflib.SequenceMatcher(None, nf, txt(t)).ratio(), i) for i, t in enumerate(tomas) if i not in usadas]
+            r, i = max(cand, key=lambda c: (round(c[0], 2), c[1]))
+            if r < 0.6: raise SystemExit(f"guion: ninguna toma se parece a '{f}' (mejor {r:.2f}: '{' '.join(p['w'] for p in pal[tomas[i][0]:tomas[i][1]])}')")
+            usadas.add(i); lineas.append([tomas[i]]); md.append(f"- guion: '{f}' -> toma {tomas[i][0]}-{tomas[i][1]} (parecido {r:.2f})")
+    else:
+        lineas, apartes = agrupar(pal, tomas)
     forzadas = {int(f.split(":")[0]): int(f.split(":")[1]) for f in a.forzar_toma}
     terminar = {int(f.split(":")[0]): norm(f.split(":", 1)[1]) for f in a.terminar_en}
-    plan, elegidas, md = [], [], []
+    plan, elegidas = [], []
     for li, L in enumerate(lineas):
         n_max = max(t[1] - t[0] for t in L); filas = []
         for ti, t in enumerate(L):
             s, comp, tart = puntuar(pal, t, n_max); filas.append((s, ti, t, comp, tart))
         mejor = max(filas, key=lambda f: (f[0], f[1]))  # empate: la última
         if li in forzadas: mejor = filas[forzadas[li]]
-        ultima_incompleta = len(L) == 1 and not mejor[3] and L[0][1] == len(pal)
+        ultima_incompleta = (not a.guion) and len(L) == 1 and not mejor[3] and L[0][1] == len(pal)
         plan.append((li, L, filas, mejor, ultima_incompleta))
         t = mejor[2]
         if li in terminar:   # recorte editorial: la toma termina tras la última aparición de la palabra

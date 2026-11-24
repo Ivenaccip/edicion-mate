@@ -30,6 +30,7 @@ def main():
     ap.add_argument("--rotar", choices=["ccw", "cw", "180"]); ap.add_argument("--encuadre", default="9:16")
     ap.add_argument("--hasta", choices=["cortes", "audio", "visual", "final"], default="visual")
     ap.add_argument("--forzar", action="store_true"); ap.add_argument("--cola", type=float, default=0.1, help="s de cola al final del cuerpo (aire con fundido)")
+    ap.add_argument("--guion", help="guion final (una frase por línea) para seleccionar_tomas.py --guion; sin él, agrupado automático")
     a = ap.parse_args()
     raw = Path(a.raw).resolve(); d = Path(a.carpeta).resolve() if a.carpeta else raw.parent / raw.stem
     d.mkdir(parents=True, exist_ok=True)
@@ -44,7 +45,7 @@ def main():
         shutil.move(d / "raw.edl.json", d / "raw.pausas.edl.json")
         # retomas y apartes: elige la mejor toma de cada línea por transcript y corta en valles de energía
         run([VENV, REPO / "pipeline/seleccionar_tomas.py", d / "raw.palabras.json", d / "raw_audio.wav", d / "raw.pausas.edl.json",
-             "--salida", d / "raw.edl.json", "--md", d / "tomas.md"], d)
+             "--salida", d / "raw.edl.json", "--md", d / "tomas.md", *(["--guion", Path(a.guion).resolve()] if a.guion else [])], d)
         print("AVISO: revisa tomas.md (plan de tomas) antes de dar por bueno el corte; --forzar-toma en seleccionar_tomas.py cambia una elección.")
     rot = ["--rotar", a.rotar] if a.rotar else []
     if falta("cuerpo_576.mp4", "cuerpo_576.aplicado.json"):

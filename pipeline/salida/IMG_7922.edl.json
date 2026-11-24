@@ -1,0 +1,118 @@
+{
+ "entrada": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/IMG_7922/raw_audio.wav",
+ "salida": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/IMG_7922/raw.wav",
+ "sr": 48000,
+ "nivel_voz_dbfs": -23.1,
+ "duracion_original_s": 233.216,
+ "duracion_editada_s": 216.676,
+ "quitado_s": 16.24,
+ "pausas_encontradas": 48,
+ "pausas_acortadas": 22,
+ "reglas": {
+  "UMBRAL_DB": -35,
+  "MIN_PAUSA": 120,
+  "PAUSA_MAX": 450,
+  "PAUSA_OBJETIVO": 250,
+  "CROSSFADE": 15
+ },
+ "edl": [
+  {
+   "quitar": [
+    0.0,
+    74.498
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    76.076,
+    76.283
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    77.951,
+    78.171
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    90.857,
+    138.66
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    140.823,
+    140.973
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    149.211,
+    185.133
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    187.986,
+    188.085
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    198.164,
+    221.614
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    226.839,
+    234.216
+   ],
+   "accion": "quitar cola (por transcript)"
+  }
+ ],
+ "tramos_elegidos": [
+  [
+   74.498,
+   76.076
+  ],
+  [
+   76.283,
+   77.951
+  ],
+  [
+   78.171,
+   90.857
+  ],
+  [
+   138.66,
+   140.823
+  ],
+  [
+   140.973,
+   149.211
+  ],
+  [
+   185.133,
+   187.986
+  ],
+  [
+   188.085,
+   198.164
+  ],
+  [
+   221.614,
+   226.839
+  ]
+ ],
+ "nota": "EDL combinado por seleccionar_tomas.py: mejor toma por línea (transcript) + pausas acortadas dentro de las tomas (señal)"
+}

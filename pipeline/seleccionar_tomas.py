@@ -13,8 +13,8 @@ Pasos:
                Una línea de UNA toma metida entre tomas de otra línea es un aparte: fuera.
                Una línea de una toma incompleta (sin . ? !) al final del raw es charla al equipo: fuera.
   3 mejor    = por línea: completa (termina en . ? !) > sin tartamudeo (sin bigrama repetido) > más larga > la última.
-  4 bordes   = inicio en el valle de energía (ventanas de 20 ms, raw_audio.wav) entre la palabra anterior y la primera
-               de la toma, dentro de los 0.6 s previos; fin igual tras la última palabra. Se dejan >= 0.15 s de aire.
+  4 bordes   = la voz real por energía (ventanas de 10 ms, raw_audio.wav; el transcriptor da fines ~0.1 s tarde) y
+               --pausa-empalme (0.25 s) de silencio total por empalme, mitad en cada lado; --aire (0.15 s) al final.
   5 EDL      = quitar = complemento de las tomas elegidas + las pausas acortadas del editor que caen dentro de ellas.
 Uso: seleccionar_tomas.py raw.palabras.json raw_audio.wav raw.edl.json [--salida raw.edl.json] [--md tomas.md]
     (sin --salida solo imprime el plan). --forzar-toma LINEA:TOMA elige a mano (índices del plan);
@@ -74,10 +74,41 @@ def valle(x, sr, t0, t1):
     rms = np.sqrt((seg[: m * n].reshape(m, n) ** 2).mean(axis=1))
     return (a + (int(rms.argmin()) + 0.5) * n) / sr
 
+def borde_voz(x, sr, t_asr, hacia, lim, umbral_db=-40, busca=0.35, hueco=0.06):
+    """Dónde termina (hacia=+1) o empieza (hacia=-1) la voz de verdad cerca del tiempo que dio el transcriptor
+    (sus fines e inicios van tarde ~0.1 s). Ventanas de 10 ms; "callada" = por debajo de umbral_db relativo al pico.
+    Fin: si t_asr suena, avanza hasta el primer hueco callado de >= `hueco` s y devuelve su inicio; si t_asr ya
+    está callado, retrocede hasta la última ventana con voz. Inicio: simétrico. Nunca pasa de `lim`."""
+    n = sr // 100; ref = float(np.abs(x).max()) or 1.0
+    def callada(t):
+        a = int(t * sr); seg = x[a:a + n]
+        return 20 * np.log10(max(float(np.sqrt((seg ** 2).mean())), 1e-9) / ref) < umbral_db
+    k = max(1, int(round(hueco / 0.01)))
+    if hacia > 0:
+        if callada(t_asr):
+            t = t_asr
+            while t > t_asr - busca and callada(t): t -= 0.01
+            return t + 0.01
+        t = t_asr; tope = min(t_asr + busca, lim)
+        while t + k * 0.01 <= tope:
+            if all(callada(t + j * 0.01) for j in range(k)): return t
+            t += 0.01
+        return min(t_asr, tope)
+    if callada(t_asr):
+        t = t_asr
+        while t < t_asr + busca and callada(t): t += 0.01
+        return t
+    t = t_asr; tope = max(t_asr - busca, lim)
+    while t - k * 0.01 >= tope:
+        if all(callada(t - j * 0.01) for j in range(1, k + 1)): return t
+        t -= 0.01
+    return max(t_asr, tope)
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("palabras"); ap.add_argument("audio"); ap.add_argument("edl_pausas")
-    ap.add_argument("--salida"); ap.add_argument("--md"); ap.add_argument("--aire", type=float, default=0.15)
+    ap.add_argument("--salida"); ap.add_argument("--md"); ap.add_argument("--aire", type=float, default=0.15, help="s de aire tras la última palabra del cuerpo")
+    ap.add_argument("--pausa-empalme", type=float, default=0.25, help="s de silencio total en cada empalme (regla del editor de pausas: 250 ms)")
     ap.add_argument("--forzar-toma", action="append", default=[], help="LINEA:TOMA (índices del plan)")
     ap.add_argument("--terminar-en", action="append", default=[], help="LINEA:PALABRA, la toma elegida termina tras la última PALABRA (p. ej. 2:llegar)")
     a = ap.parse_args()
@@ -103,15 +134,20 @@ def main():
             t = (t[0], js[-1] + 1); md.append(f"- línea {li}: termina en '{pal[js[-1]]['w']}' ({pal[js[-1]]['fin']:.2f} s) por --terminar-en")
         if not ultima_incompleta: elegidas.append(t)
     # bordes por señal
-    tramos = []
-    for (i0, i1) in elegidas:
+    # bordes: la voz real (por energía) termina/empieza cerca de lo que dijo el transcriptor (sus fines suelen ir
+    # tarde ~0.1 s). Cada empalme deja pausa_empalme en total: mitad al final del tramo, mitad al inicio del siguiente;
+    # nunca se pisa la palabra vecina. El último tramo deja `aire` tras la última palabra.
+    tramos = []; mitad = a.pausa_empalme / 2
+    for k, (i0, i1) in enumerate(sorted(elegidas)):
         p0, p1 = pal[i0], pal[i1 - 1]
         prev_fin = pal[i0 - 1]["fin"] if i0 > 0 else 0.0; next_ini = pal[i1]["ini"] if i1 < len(pal) else dur
-        ini = valle(x, sr, max(prev_fin, p0["ini"] - 0.6), max(prev_fin, p0["ini"] - 0.02)) if p0["ini"] - prev_fin > 0.05 else prev_fin
-        fin = valle(x, sr, min(next_ini, p1["fin"] + 0.02), min(next_ini, p1["fin"] + 0.6)) if next_ini - p1["fin"] > 0.05 else next_ini
-        ini = min(ini, max(0.0, p0["ini"] - a.aire)); fin = max(fin, min(dur, p1["fin"] + a.aire))
-        tramos.append([round(ini, 3), round(fin, 3)])
-    tramos.sort()
+        voz_ini = borde_voz(x, sr, p0["ini"], -1, prev_fin); voz_fin = borde_voz(x, sr, p1["fin"], +1, next_ini)
+        # la voz vecina real (el transcriptor también da inicios tarde: "en" tras "llegar" arrancaba 0.1 s antes)
+        prev_voz = borde_voz(x, sr, prev_fin, +1, voz_ini) if i0 > 0 else 0.0
+        sig_voz = borde_voz(x, sr, next_ini, -1, voz_fin) if i1 < len(pal) else dur
+        ini = max(prev_voz + 0.01, voz_ini - mitad) if k > 0 else max(0.0, voz_ini - a.aire)
+        fin = min(sig_voz - 0.01, voz_fin + (mitad if k < len(elegidas) - 1 else a.aire))
+        tramos.append([round(ini, 3), round(fin, 3)]); md.append(f"- tramo {k}: voz {voz_ini:.2f}-{voz_fin:.2f} s (transcriptor {p0['ini']:.2f}-{p1['fin']:.2f}), corte {ini:.3f}-{fin:.3f}")
     # quitar = complemento + pausas acortadas del editor dentro de cada tramo
     edl_p = json.load(open(a.edl_pausas)); quitar = []; cursor = 0.0
     for ini, fin in tramos:

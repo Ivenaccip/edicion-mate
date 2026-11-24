@@ -19,27 +19,27 @@
   {
    "quitar": [
     0.0,
-    8.05
+    8.0
    ],
    "accion": "quitar retoma/aparte (por transcript)"
   },
   {
    "quitar": [
-    11.868,
-    58.142
+    11.513,
+    58.167
    ],
    "accion": "quitar retoma/aparte (por transcript)"
   },
   {
    "quitar": [
-    66.632,
-    82.547
+    66.407,
+    82.832
    ],
    "accion": "quitar retoma/aparte (por transcript)"
   },
   {
    "quitar": [
-    86.937,
+    86.869,
     116.861
    ],
    "accion": "quitar cola (por transcript)"
@@ -47,16 +47,16 @@
  ],
  "tramos_elegidos": [
   [
-   8.05,
-   11.868
+   8.0,
+   11.513
   ],
   [
-   58.142,
-   66.632
+   58.167,
+   66.407
   ],
   [
-   82.547,
-   86.937
+   82.832,
+   86.869
   ]
  ],
  "nota": "EDL combinado por seleccionar_tomas.py: mejor toma por línea (transcript) + pausas acortadas dentro de las tomas (señal)"

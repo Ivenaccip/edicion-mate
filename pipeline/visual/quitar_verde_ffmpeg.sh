@@ -31,7 +31,7 @@ fi
 if [ -n "$MASC_ESCRITORIO" ]; then
   # donde la máscara de escritorio es blanca se toma el fotograma original (opaco); el resto, la llave
   IDX=$(( ${#EXTRA[@]} / 2 + 2 )); EXTRA+=(-i "$MASC_ESCRITORIO")
-  KEY="${KEY};[${IDX}:v]scale=1080:1920,format=rgba[d];[k][o][d]maskedmerge,format=rgba[p]"
+  KEY="${KEY};[o]despill=type=green:mix=0.7:expand=0,format=rgba[od];[${IDX}:v]scale=1080:1920,format=rgba[d];[k][od][d]maskedmerge,format=rgba[p]"
 else
   KEY="${KEY};[k]null[p];[o]nullsink"
 fi

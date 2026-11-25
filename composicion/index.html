@@ -174,6 +174,7 @@
 
 
 
+
         <!-- /CAPTIONS -->
       </div>
       <div id="siguenos" class="clip" data-composition-id="siguenos" data-composition-src="compositions/siguenos.html" data-start="39.3" data-duration="3.9" data-track-index="6"></div>
@@ -184,9 +185,9 @@
       <!-- SFX: la voz manda -->
       <audio id="sfx-intro" src="./assets/sfx/intro.m4a" data-start="0" data-duration="0.92" data-volume="0.6"></audio>
       <audio id="sfx-w1" src="./assets/sfx/whoosh.m4a" data-start="3.25" data-duration="0.47" data-volume="0.3"></audio>
-      <audio id="sfx-t1" src="./assets/sfx/tick.m4a" data-start="6.86" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t2" src="./assets/sfx/tick.m4a" data-start="7.50" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t3" src="./assets/sfx/tick.m4a" data-start="8.22" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t1" src="./assets/sfx/pop.m4a" data-start="6.86" data-duration="0.2" data-volume="0.5"></audio>
+      <audio id="sfx-t2" src="./assets/sfx/pop.m4a" data-start="7.50" data-duration="0.2" data-volume="0.5"></audio>
+      <audio id="sfx-t3" src="./assets/sfx/pop.m4a" data-start="8.22" data-duration="0.2" data-volume="0.5"></audio>
       <audio id="sfx-p1" src="./assets/sfx/pop.m4a" data-start="9.10" data-duration="0.2" data-volume="0.4"></audio>
       <audio id="sfx-p2" src="./assets/sfx/pop.m4a" data-start="10.61" data-duration="0.2" data-volume="0.4"></audio>
       <audio id="sfx-p3" src="./assets/sfx/pop.m4a" data-start="13.03" data-duration="0.2" data-volume="0.4"></audio>
@@ -208,7 +209,7 @@
       const entra = (sel, t, dur = 0.35) => tl.fromTo(sel, { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: "power3.out" }, t);
       const barrido = (sel, t, r = "28px") => tl.fromTo(sel, { clipPath: `inset(0 100% 0 0 round ${r})` }, { clipPath: `inset(0 0% 0 0 round ${r})`, duration: 0.28, ease: "power3.out" }, t);
       const kb = (sel, t, dur, origen) => { tl.set(sel, { transformOrigin: origen }, t); tl.fromTo(sel, { scale: 1.0 }, { scale: 1.08, duration: dur, ease: "none" }, t); };
-      const pop = (sel, t) => tl.fromTo(sel, { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.6)" }, t);
+      const pop = (sel, t) => tl.fromTo(sel, { opacity: 0, scale: 0.15, rotate: -14 }, { opacity: 1, scale: 1, rotate: 0, duration: 0.45, ease: "back.out(3.2)" }, t);
       const item = (sel, t) => tl.fromTo(sel, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
       // Frame 0: todo visible; el título asienta con el tin
       tl.fromTo("#persona", { y: 12 }, { y: 0, duration: 0.3, ease: "power3.out" }, 0);
@@ -298,6 +299,7 @@
       capBloque("#cap38", 39.239, 40.856);
       capBloque("#cap39", 40.856, 41.196);
       capBloque("#cap40", 41.196, 43.200);
+
 
 
 

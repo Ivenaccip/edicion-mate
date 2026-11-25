@@ -6,15 +6,14 @@
     <script src="./vendor/gsap.min.js"></script>
     <style>
       @font-face { font-family: "InterLocal"; src: url("./vendor/Inter-ExtraBold.otf") format("opentype"); font-weight: 400 900; }
-      /* IMG_7924 (evento 30 de noviembre, Google Partner). Cuerpo 16.15 s, empalmes 3.504 y 11.745.
-         Plan del usuario: 1) collage de productos de Google Workspace hasta el primer corte, 2) la fecha con un
-         calendario (a pantalla completa: tapa el empalme 1), 3) b-roll de hombres de negocios (Mixkit 22961 y 4547),
-         4) insignia Google Partner, 5) la palabra "Google" escrita en una caja de comentario, 6) "Mensaje enviado".
-         Plantilla anterior guardada en plantillas/IMG_7889_index.html. Tiempos = tiempo del cuerpo (EDL aplicado). */
+      /* IMG_7922 "3 nuevos productos de Meta". Cuerpo 43.2 s, empalmes 1.568, 3.237, 15.916, 18.051, 26.293, 29.162, 39.239.
+         Plan (docs/05-broll-IMG_7922.md): título, tarjeta por producto, Muse (video del usuario) + íconos de apps,
+         lista de 3 funciones sobre clip de celular (Mixkit 51123), visor (PNG del usuario) y clip VR (Mixkit 52068)
+         con contador 100 g, reel oficial Ray-Ban Meta (Apify) + 3 viñetas, y el botón Seguir al final.
+         Plantillas anteriores en plantillas/. Tiempos = tiempo del cuerpo (EDL aplicado). */
       :root {
-        --crema: #f1ece3; --tinta: #1b1b1f; --azul: #2f8fff; --naranja: #e07b4a; --navy: #0f1b33;
+        --crema: #f1ece3; --tinta: #1b1b1f; --azul: #2f8fff; --naranja: #e07b4a; --navy: #0f1b33; --meta: #0081fb;
         --font: "InterLocal", "DejaVu Sans", sans-serif;
-        --g-azul: #4285F4; --g-rojo: #EA4335; --g-amarillo: #FBBC05; --g-verde: #34A853;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); }
@@ -22,239 +21,224 @@
       .capa { position: absolute; inset: 0; width: 1080px; height: 1920px; }
       #fondo { z-index: 0; background: var(--crema); }
 
-      /* Zona de b-roll: tarjeta flotante 16:9 arriba, libre de la persona (la cabeza empieza en y≈760) */
       .ventana { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; object-fit: cover;
         box-shadow: 0 30px 80px rgba(0,0,0,.28); background: #000; z-index: 1; }
       .tarjeta { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; overflow: hidden;
         box-shadow: 0 30px 80px rgba(0,0,0,.28); z-index: 1; }
-
-      /* Texto "doble": relleno blanco con contorno negro (paint-order pinta el borde debajo del relleno) */
       .texto-doble { color: #fff; -webkit-text-stroke: 8px #111; paint-order: stroke fill; text-shadow: 0 6px 18px rgba(0,0,0,.45); }
-      .rotulo { z-index: 2; position: absolute; left: 140px; width: 800px; top: 718px; text-align: center; font-size: 74px; line-height: 1;
-        letter-spacing: -0.02em; text-transform: uppercase; opacity: 0; -webkit-text-stroke-width: 7px; }
 
-      /* 1) Collage Google Workspace (0-3.45 s): tarjeta blanca, marca arriba, 10 íconos en dos filas que van apareciendo */
-      #collage { top: 200px; height: 540px; background: #fff; }
-      #collage .marca { position: absolute; left: 0; right: 0; top: 44px; height: 54px; text-align: center; }
-      #collage .marca img { height: 54px; }
-      #collage .rejilla { position: absolute; left: 48px; right: 48px; top: 140px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 36px 24px; justify-items: center; }
-      #collage .rejilla img { width: 118px; height: 118px; object-fit: contain; opacity: 0; filter: drop-shadow(0 6px 10px rgba(0,0,0,.12)); }
+      /* Título y tarjetas numeradas: navy con número gigante azul Meta */
+      .titulo { background: var(--navy); color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 56px; }
+      .titulo .num { font-size: 230px; line-height: 0.9; color: var(--meta); letter-spacing: -0.05em; }
+      .titulo .tx { font-size: 72px; line-height: 1.0; letter-spacing: -0.02em; margin-top: 10px; }
+      .titulo .tx small { display: block; font-size: 40px; color: #9fb3d9; font-family: "DejaVu Sans", sans-serif; margin-top: 10px; }
+      .titulo img.meta { position: absolute; right: 44px; top: 40px; width: 140px; }
+      .producto { background: var(--navy); color: #fff; display: flex; align-items: center; gap: 36px; padding: 0 56px; }
+      .producto .num { font-size: 260px; line-height: 0.9; color: var(--meta); letter-spacing: -0.05em; flex: none; }
+      .producto .tx { font-size: 84px; line-height: 0.95; letter-spacing: -0.02em; }
+      .producto .tx small { display: block; font-size: 38px; color: #9fb3d9; font-family: "DejaVu Sans", sans-serif; margin-top: 14px; }
 
-      /* 2) Calendario a pantalla completa (3.45-4.9 s): tapa el empalme 1 */
-      #calendario { z-index: 6; position: absolute; inset: 0; background: var(--navy); }
-      #calendario .hoja { position: absolute; left: 90px; top: 380px; width: 900px; height: 1060px; background: #fff; border-radius: 48px; overflow: hidden;
-        box-shadow: 0 40px 120px rgba(0,0,0,.5); }
-      #calendario .mes { height: 170px; background: var(--g-azul); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 76px; letter-spacing: -0.02em; }
-      #calendario .dias { display: grid; grid-template-columns: repeat(7, 1fr); padding: 36px 40px 0; row-gap: 8px; }
-      #calendario .dias div { height: 118px; display: flex; align-items: center; justify-content: center; font-size: 56px; color: #3c4043; position: relative; }
-      #calendario .dias .cab { height: 70px; font-size: 38px; color: #80868b; }
-      #calendario .dias .hoy { color: var(--g-rojo); z-index: 1; }
-      #calendario .dias .hoy b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-      #calendario .aro { position: absolute; left: 90px; top: 380px; width: 900px; height: 1060px; pointer-events: none; }
-      #calendario .pie { position: absolute; left: 0; right: 0; top: 1500px; text-align: center; color: #fff; font-size: 92px; letter-spacing: -0.02em; line-height: 1; }
-      #calendario .pie small { display: block; font-size: 44px; color: #9fb3d9; margin-top: 18px; font-family: "DejaVu Sans", sans-serif; }
+      /* Muse: video vertical a la izquierda, íconos de apps a la derecha */
+      #muse { background: #e9e4dc; }
+      #muse .cab { position: absolute; left: 300px; right: 40px; top: 56px; font-size: 54px; line-height: 1; color: var(--navy); letter-spacing: -0.02em; text-align: center; }
+      #muse .cab small { display: block; font-family: "DejaVu Sans", sans-serif; font-size: 30px; color: #6b6b75; margin-top: 10px; }
+      #muse .apps { position: absolute; left: 300px; right: 40px; top: 190px; bottom: 0; display: flex; align-items: center; justify-content: space-around; }
+      #muse .apps img { width: 130px; height: 130px; opacity: 0; filter: drop-shadow(0 8px 14px rgba(0,0,0,.18)); }
+      #v-muse { position: absolute; left: 140px; top: 250px; width: 253px; height: 450px; object-fit: cover; z-index: 2; border-radius: 28px 0 0 28px; }
 
-      /* 4) Insignia Google Partner (8.3-11.75 s) */
-      #partner { background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
-      #partner .borde { position: absolute; left: 0; top: 0; bottom: 0; width: 22px; background: linear-gradient(180deg, var(--g-azul) 0 25%, var(--g-rojo) 25% 50%, var(--g-amarillo) 50% 75%, var(--g-verde) 75% 100%); }
-      #partner img { width: 430px; }
-      #partner span { font-family: "DejaVu Sans", sans-serif; font-size: 96px; color: #5f6368; letter-spacing: 0.01em; line-height: 1; }
+      /* Lista de funciones sobre el clip de celular */
+      #funciones .velo { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15,27,51,.92) 0 55%, rgba(15,27,51,.35) 100%); }
+      #funciones ul { position: absolute; left: 48px; top: 54px; list-style: none; color: #fff; font-size: 50px; line-height: 1.1; letter-spacing: -0.01em; }
+      #funciones li { display: flex; align-items: center; gap: 22px; margin-bottom: 30px; opacity: 0; }
+      #funciones li i { width: 56px; height: 56px; border-radius: 50%; background: var(--meta); flex: none; display: flex; align-items: center; justify-content: center; }
+      #funciones li i svg { width: 32px; height: 32px; fill: none; stroke: #fff; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+      #v-texting { z-index: 1; }
 
-      /* 5) Caja de comentario (13.6-16.15 s): campo tipo TikTok, el cursor escribe "Google" y envía */
-      #comentario { background: #16161a; }
-      #comentario .campo { position: absolute; left: 44px; right: 44px; top: 150px; height: 150px; border-radius: 75px; background: #2a2a30; display: flex; align-items: center; padding: 0 44px 0 52px; }
-      #comentario .campo .texto { flex: 1; min-width: 0; overflow: hidden; font-size: 58px; color: #fff; white-space: nowrap; letter-spacing: 0.01em; }
-      #comentario .campo .texto .ph { color: #8a8a93; font-family: "DejaVu Sans", sans-serif; font-size: 50px; }
-      #comentario .campo .texto .ch { display: none; }
-      #comentario .campo .caret { width: 5px; height: 66px; background: #fff; margin-left: 4px; border-radius: 3px; }
-      #comentario .enviar { flex: none; width: 104px; height: 104px; border-radius: 50%; background: var(--g-rojo); display: flex; align-items: center; justify-content: center; margin-left: 24px; }
-      #comentario .enviar svg { width: 54px; height: 54px; fill: #fff; }
-      #comentario .cursor { position: absolute; left: 520px; top: 380px; width: 64px; height: 72px; opacity: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
-      #comentario .burbuja { position: absolute; left: 52px; top: 34px; padding: 18px 34px; border-radius: 40px; background: #2a2a30; color: #fff; font-size: 44px; opacity: 0; }
-      #comentario .burbuja small { display: block; font-family: "DejaVu Sans", sans-serif; font-size: 26px; color: #8a8a93; margin-bottom: 4px; }
-      #comentario .enviado { position: absolute; left: 44px; right: 44px; top: 330px; height: 92px; border-radius: 46px; background: var(--g-verde); color: #fff;
-        display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 44px; opacity: 0; }
-      #comentario .enviado svg { width: 44px; height: 44px; fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+      /* Visor: foto de producto sobre blanco, y contador 100 g sobre el clip VR */
+      #visor { background: #fff; display: flex; align-items: center; justify-content: center; }
+      #visor img { width: 760px; }
+      .rotulo { z-index: 2; position: absolute; left: 140px; width: 800px; top: 330px; text-align: left; padding-left: 40px; opacity: 0; }
+      .rotulo b { display: block; font-size: 190px; line-height: 1; letter-spacing: -0.04em; }
+      .rotulo span { display: block; font-size: 58px; font-weight: 800; margin-top: 10px; -webkit-text-stroke-width: 5px; }
+
+      /* Ray-Ban: reel a la izquierda (4:5), tres viñetas a la derecha */
+      #rayban { background: var(--navy); }
+      #v-rayban { position: absolute; left: 140px; top: 250px; width: 360px; height: 450px; object-fit: cover; z-index: 2; border-radius: 28px 0 0 28px; }
+      #rayban ul { position: absolute; left: 400px; right: 36px; top: 46px; list-style: none; color: #fff; font-size: 44px; line-height: 1.05; }
+      #rayban li { display: flex; align-items: center; gap: 20px; margin-bottom: 26px; opacity: 0; }
+      #rayban li i { width: 72px; height: 72px; border-radius: 18px; background: rgba(255,255,255,.1); flex: none; display: flex; align-items: center; justify-content: center; }
+      #rayban li i svg { width: 42px; height: 42px; fill: none; stroke: #fff; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
 
       #persona { z-index: 5; object-fit: cover; filter: saturate(1.3) contrast(1.06) brightness(1.02); }
       #progreso { z-index: 9; position: absolute; left: 0; top: 0; height: 10px; width: 0; background: var(--naranja); }
-
-      /* Captions (pipeline/visual/captions.py), justo encima del logo de la laptop */
       #captions { z-index: 6; position: absolute; left: 108px; width: 864px; top: 1360px; }
       #captions .bloque { position: absolute; left: 0; width: 864px; text-align: center; opacity: 0; font-size: 66px; font-weight: 800;
         line-height: 1.15; letter-spacing: -0.01em; color: #fff; -webkit-text-stroke: 7px #111; paint-order: stroke fill;
         text-shadow: 0 6px 18px rgba(0,0,0,.45); }
       #captions .pal { display: inline-block; padding: 2px 14px; border-radius: 16px; margin: 0 1px; }
       #captions .pal.on { background: var(--azul); -webkit-text-stroke: 0; text-shadow: none; }
-
+      #siguenos { z-index: 6; position: absolute; inset: 0; }
       #logo { z-index: 7; position: absolute; left: 48px; top: 1790px; width: 360px; height: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="16.15" data-width="1080" data-height="1920">
-      <div id="fondo" class="clip capa" data-start="0" data-duration="16.15" data-track-index="0"></div>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="43.2" data-width="1080" data-height="1920">
+      <div id="fondo" class="clip capa" data-start="0" data-duration="43.2" data-track-index="0"></div>
 
-      <!-- 1) Collage Google Workspace: "si tu equipo trabaja con el ecosistema de Google" (0-3.45) -->
-      <div id="collage" class="tarjeta clip" data-start="0" data-duration="3.45" data-track-index="1">
-        <div class="marca"><img src="./iconos/google-workspace.svg" alt="" /></div>
-        <div class="rejilla">
-          <img class="ico" src="./iconos/di_gmail.svg" alt="" /><img class="ico" src="./iconos/di_google-drive.svg" alt="" /><img class="ico" src="./iconos/di_google-calendar.svg" alt="" /><img class="ico" src="./iconos/di_google-meet.svg" alt="" /><img class="ico" src="./iconos/di_google-docs.svg" alt="" />
-          <img class="ico" src="./iconos/di_google-sheets.svg" alt="" /><img class="ico" src="./iconos/di_google-slides.svg" alt="" /><img class="ico" src="./iconos/di_google-forms.svg" alt="" /><img class="ico" src="./iconos/di_google-chat.svg" alt="" /><img class="ico" src="./iconos/di_google-keep.svg" alt="" />
-        </div>
+      <!-- 0-1.75: "3 nuevos productos de Meta" -->
+      <div id="titulo" class="tarjeta titulo clip" data-start="0" data-duration="1.75" data-track-index="1">
+        <div class="num">3</div><div class="tx">productos nuevos<small>de Meta</small></div>
+        <img class="meta" src="./iconos/di_meta.svg" alt="" />
       </div>
-
-      <!-- 3) Hombres de negocios: "capacitación exclusiva para dueños de empresa" (4.9-8.3) -->
-      <video class="ventana clip" id="v-presenta" src="./assets/b5_negocios_presenta_1280.mp4" data-start="4.9" data-duration="3.4" data-track-index="1" muted playsinline></video>
-      <div class="rotulo texto-doble clip" id="r-duenos" data-start="7.2" data-duration="1.1" data-track-index="2">Dueños de empresa</div>
-
-      <!-- 4) Google Partner: "principales aliados comerciales de Google en Latinoamérica" (8.3-11.75) -->
-      <div id="partner" class="tarjeta clip" data-start="8.3" data-duration="3.45" data-track-index="1">
-        <div class="borde"></div>
-        <img src="./iconos/google.svg" alt="" />
-        <span>Partner</span>
+      <!-- 1.75-3.3: "Número 1, Muse" -->
+      <div id="p1" class="tarjeta producto clip" data-start="1.75" data-duration="1.55" data-track-index="1"><div class="num">1</div><div class="tx">Muse<small>asistente de IA</small></div></div>
+      <!-- 3.3-8.9: Muse vive en WhatsApp, Instagram y Facebook -->
+      <div id="muse" class="tarjeta clip" data-start="3.3" data-duration="5.6" data-track-index="1">
+        <div class="cab">Tu nuevo asistente<small>vive dentro de tus apps</small></div>
+        <div class="apps"><img id="ico-wa" src="./iconos/di_whatsapp.svg" alt="" /><img id="ico-ig" src="./iconos/di_instagram.svg" alt="" /><img id="ico-fb" src="./iconos/di_facebook.svg" alt="" /></div>
       </div>
-
-      <!-- 3b) Mesa de negocios: "si quieres entrar en esta capacitación" (11.9-13.6) -->
-      <video class="ventana clip" id="v-mesa" src="./assets/b6_negocios_mesa_1280.mp4" data-start="11.9" data-duration="1.7" data-track-index="1" muted playsinline></video>
-
-      <!-- 5 y 6) Comentario "Google" y mensaje enviado (13.6-16.15) -->
-      <div id="comentario" class="tarjeta clip" data-start="13.6" data-duration="2.55" data-track-index="1">
-        <div class="burbuja">Google</div>
-        <div class="campo">
-          <div class="texto"><span class="ph">Agrega un comentario...</span><span class="ch">G</span><span class="ch">o</span><span class="ch">o</span><span class="ch">g</span><span class="ch">l</span><span class="ch">e</span></div>
-          <div class="caret"></div>
-          <div class="enviar"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></div>
-        </div>
-        <div class="enviado"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 7"/></svg>Mensaje enviado</div>
-        <svg class="cursor" viewBox="0 0 32 36"><path d="M2 2l9 30 5-12 12-5z" fill="#fff" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/></svg>
+      <video id="v-muse" class="clip" src="./assets/b9_muse_720x1280.mp4" data-start="3.3" data-duration="5.6" data-track-index="2" muted playsinline></video>
+      <!-- 8.9-15.75: tres funciones -->
+      <video id="v-texting" class="ventana clip" src="./assets/b7_texting_1280.mp4" data-start="8.9" data-duration="6.85" data-track-index="1" muted playsinline></video>
+      <div id="funciones" class="tarjeta clip" data-start="8.9" data-duration="6.85" data-track-index="2" style="box-shadow:none; z-index:2">
+        <div class="velo"></div>
+        <ul>
+          <li id="f1"><i><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></i>Contesta mensajes</li>
+          <li id="f2"><i><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></i>Organiza tu Instagram</li>
+          <li id="f3"><i><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></i>Busca en Marketplace</li>
+        </ul>
       </div>
+      <!-- 16.0-18.2: "Número 2, Meta VR Glasses" -->
+      <div id="p2" class="tarjeta producto clip" data-start="16.0" data-duration="2.2" data-track-index="1"><div class="num">2</div><div class="tx">Meta VR Glasses<small>el casco ligero</small></div></div>
+      <!-- 18.2-22.6: foto del visor -->
+      <div id="visor" class="tarjeta clip" data-start="18.2" data-duration="4.4" data-track-index="1"><img src="./assets/visor_meta.png" alt="" /></div>
+      <!-- 22.6-26.3: clip VR + contador 100 g -->
+      <video id="v-vr" class="ventana clip" src="./assets/b8_vr_1280.mp4" data-start="22.6" data-duration="3.7" data-track-index="1" muted playsinline></video>
+      <div id="peso" class="rotulo clip" data-start="22.7" data-duration="3.6" data-track-index="2"><b class="texto-doble">100 g</b><span class="texto-doble">5 veces menos</span></div>
+      <!-- 26.5-29.0: "Número 3, Ray-Ban Meta generación 3" -->
+      <div id="p3" class="tarjeta producto clip" data-start="26.5" data-duration="2.5" data-track-index="1"><div class="num">3</div><div class="tx">Ray-Ban Meta<small>generación 3</small></div></div>
+      <!-- 29.0-39.2: reel oficial + viñetas -->
+      <div id="rayban" class="tarjeta clip" data-start="29.0" data-duration="10.2" data-track-index="1">
+        <ul>
+          <li id="r1"><i><svg viewBox="0 0 24 24"><path d="M4 14c2-4 6-6 8-6s6 2 8 6M8 18h8"/></svg></i>Más cómodos</li>
+          <li id="r2"><i><svg viewBox="0 0 24 24"><rect x="3" y="7" width="15" height="10" rx="2"/><path d="M18 10h3v4h-3M6 10v4M9 10v4M12 10v4"/></svg></i>Batería más larga</li>
+          <li id="r3"><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></i>Botón para tu asistente</li>
+        </ul>
+      </div>
+      <video id="v-rayban" class="clip" src="./assets/b10_rayban_720x900.mp4" data-start="29.0" data-duration="10.2" data-track-index="2" muted playsinline></video>
 
-      <div id="captions" class="clip" data-start="0" data-duration="16.15" data-track-index="8">
+      <div id="captions" class="clip" data-start="0" data-duration="43.2" data-track-index="8">
         <!-- CAPTIONS -->
-        <div class="bloque" id="cap0"><span class="pal" data-t="0.192">Si</span><span class="pal" data-t="0.353">tu</span><span class="pal" data-t="0.386">equipo</span></div>
-        <div class="bloque" id="cap1"><span class="pal" data-t="0.676">trabaja</span><span class="pal" data-t="1.064">con</span><span class="pal" data-t="1.177">el</span></div>
-        <div class="bloque" id="cap2"><span class="pal" data-t="1.338">ecosistema</span><span class="pal" data-t="1.839">de</span><span class="pal" data-t="1.968">Google,</span></div>
-        <div class="bloque" id="cap3"><span class="pal" data-t="2.388">esta</span><span class="pal" data-t="2.550">información</span><span class="pal" data-t="3.034">es</span></div>
-        <div class="bloque" id="cap4"><span class="pal" data-t="3.179">para</span><span class="pal" data-t="3.341">ti.</span></div>
-        <div class="bloque" id="cap5"><span class="pal" data-t="3.637">El</span><span class="pal" data-t="3.782">día</span><span class="pal" data-t="4.022">30</span></div>
-        <div class="bloque" id="cap6"><span class="pal" data-t="4.262">de</span><span class="pal" data-t="4.343">noviembre</span><span class="pal" data-t="4.903">tendremos</span></div>
-        <div class="bloque" id="cap7"><span class="pal" data-t="5.384">una</span><span class="pal" data-t="5.544">capacitación</span><span class="pal" data-t="6.202">exclusiva</span></div>
-        <div class="bloque" id="cap8"><span class="pal" data-t="7.147">para</span><span class="pal" data-t="7.388">dueños</span><span class="pal" data-t="7.644">de</span></div>
-        <div class="bloque" id="cap9"><span class="pal" data-t="7.724">empresa</span><span class="pal" data-t="8.269">con</span><span class="pal" data-t="8.445">uno</span></div>
-        <div class="bloque" id="cap10"><span class="pal" data-t="8.589">de</span><span class="pal" data-t="8.670">los</span><span class="pal" data-t="8.830">principales</span></div>
-        <div class="bloque" id="cap11"><span class="pal" data-t="9.487">aliados</span><span class="pal" data-t="9.791">comerciales</span><span class="pal" data-t="10.288">de</span></div>
-        <div class="bloque" id="cap12"><span class="pal" data-t="10.433">Google</span><span class="pal" data-t="10.849">en</span><span class="pal" data-t="10.929">Latinoamérica.</span></div>
-        <div class="bloque" id="cap13"><span class="pal" data-t="11.853">Si</span><span class="pal" data-t="11.933">quieres</span><span class="pal" data-t="12.189">entrar</span></div>
-        <div class="bloque" id="cap14"><span class="pal" data-t="12.430">en</span><span class="pal" data-t="12.510">esta</span><span class="pal" data-t="12.654">capacitación,</span></div>
-        <div class="bloque" id="cap15"><span class="pal" data-t="13.712">escribe</span><span class="pal" data-t="14.097">la</span><span class="pal" data-t="14.177">palabra</span></div>
-        <div class="bloque" id="cap16"><span class="pal" data-t="14.529">Google</span><span class="pal" data-t="14.914">y</span><span class="pal" data-t="14.978">te</span></div>
-        <div class="bloque" id="cap17"><span class="pal" data-t="15.058">lo</span><span class="pal" data-t="15.154">haré</span><span class="pal" data-t="15.298">llegar</span></div>
-
+        <div class="bloque" id="cap0"><span class="pal" data-t="0.110">3</span><span class="pal" data-t="0.304">nuevos</span><span class="pal" data-t="0.596">productos</span></div>
+        <div class="bloque" id="cap1"><span class="pal" data-t="1.016">de</span><span class="pal" data-t="1.113">Meta.</span></div>
+        <div class="bloque" id="cap2"><span class="pal" data-t="1.770">Número</span><span class="pal" data-t="2.191">1,</span><span class="pal" data-t="2.692">Muse.</span></div>
+        <div class="bloque" id="cap3"><span class="pal" data-t="3.324">Tu</span><span class="pal" data-t="3.404">nuevo</span><span class="pal" data-t="3.581">asistente</span></div>
+        <div class="bloque" id="cap4"><span class="pal" data-t="4.078">de</span><span class="pal" data-t="4.142">inteligencia</span><span class="pal" data-t="4.704">artificial</span></div>
+        <div class="bloque" id="cap5"><span class="pal" data-t="5.330">que</span><span class="pal" data-t="5.812">vive</span><span class="pal" data-t="6.213">dentro</span></div>
+        <div class="bloque" id="cap6"><span class="pal" data-t="6.534">de</span><span class="pal" data-t="6.694">tu</span><span class="pal" data-t="6.855">WhatsApp,</span></div>
+        <div class="bloque" id="cap7"><span class="pal" data-t="7.256">tu</span><span class="pal" data-t="7.497">Instagram</span><span class="pal" data-t="7.994">y</span></div>
+        <div class="bloque" id="cap8"><span class="pal" data-t="8.138">tu</span><span class="pal" data-t="8.219">Facebook.</span></div>
+        <div class="bloque" id="cap9"><span class="pal" data-t="8.861">Puede</span><span class="pal" data-t="9.101">contestar</span><span class="pal" data-t="9.583">mensajes,</span></div>
+        <div class="bloque" id="cap10"><span class="pal" data-t="10.385">puede</span><span class="pal" data-t="10.610">organizar</span><span class="pal" data-t="11.107">tu</span></div>
+        <div class="bloque" id="cap11"><span class="pal" data-t="11.188">perfil</span><span class="pal" data-t="11.589">de</span><span class="pal" data-t="11.765">Instagram</span></div>
+        <div class="bloque" id="cap12"><span class="pal" data-t="12.327">y</span><span class="pal" data-t="12.472">también</span><span class="pal" data-t="12.792">puede</span></div>
+        <div class="bloque" id="cap13"><span class="pal" data-t="13.033">buscar</span><span class="pal" data-t="13.434">cosas</span><span class="pal" data-t="13.691">en</span></div>
+        <div class="bloque" id="cap14"><span class="pal" data-t="13.852">el</span><span class="pal" data-t="13.884">Marketplace</span><span class="pal" data-t="14.798">de</span></div>
+        <div class="bloque" id="cap15"><span class="pal" data-t="14.879">Facebook</span><span class="pal" data-t="15.440">por</span><span class="pal" data-t="15.681">ti.</span></div>
+        <div class="bloque" id="cap16"><span class="pal" data-t="16.109">número</span><span class="pal" data-t="16.384">2,</span><span class="pal" data-t="16.789">Meta</span></div>
+        <div class="bloque" id="cap17"><span class="pal" data-t="17.064">VR</span><span class="pal" data-t="17.485">Glasses.</span></div>
+        <div class="bloque" id="cap18"><span class="pal" data-t="18.225">El</span><span class="pal" data-t="18.371">casco</span><span class="pal" data-t="18.695">de</span></div>
+        <div class="bloque" id="cap19"><span class="pal" data-t="18.808">Meta</span><span class="pal" data-t="19.180">que</span><span class="pal" data-t="19.423">vimos</span></div>
+        <div class="bloque" id="cap20"><span class="pal" data-t="20.006">a</span><span class="pal" data-t="20.087">inicios</span><span class="pal" data-t="20.411">de</span></div>
+        <div class="bloque" id="cap21"><span class="pal" data-t="20.557">pandemia</span><span class="pal" data-t="21.302">en</span><span class="pal" data-t="21.528">día</span></div>
+        <div class="bloque" id="cap22"><span class="pal" data-t="22.095">solo</span><span class="pal" data-t="22.419">pesa</span><span class="pal" data-t="22.743">100</span></div>
+        <div class="bloque" id="cap23"><span class="pal" data-t="23.067">gramos,</span><span class="pal" data-t="23.797">5</span><span class="pal" data-t="24.121">veces</span></div>
+        <div class="bloque" id="cap24"><span class="pal" data-t="24.478">menos</span><span class="pal" data-t="24.851">que</span><span class="pal" data-t="25.013">su</span></div>
+        <div class="bloque" id="cap25"><span class="pal" data-t="25.094">generación</span><span class="pal" data-t="25.840">anterior.</span></div>
+        <div class="bloque" id="cap26"><span class="pal" data-t="26.603">número</span><span class="pal" data-t="26.844">3,</span><span class="pal" data-t="27.645">Ray-Ban</span></div>
+        <div class="bloque" id="cap27"><span class="pal" data-t="27.934">Meta</span><span class="pal" data-t="28.207">generación</span><span class="pal" data-t="28.768">3.</span></div>
+        <div class="bloque" id="cap28"><span class="pal" data-t="29.325">Esta</span><span class="pal" data-t="29.581">nueva</span><span class="pal" data-t="29.790">generación</span></div>
+        <div class="bloque" id="cap29"><span class="pal" data-t="30.351">promete</span><span class="pal" data-t="30.751">ser</span><span class="pal" data-t="30.944">más</span></div>
+        <div class="bloque" id="cap30"><span class="pal" data-t="31.313">cómodo,</span><span class="pal" data-t="31.713">tener</span><span class="pal" data-t="32.210">una</span></div>
+        <div class="bloque" id="cap31"><span class="pal" data-t="32.435">batería</span><span class="pal" data-t="32.948">más</span><span class="pal" data-t="33.316">larga</span></div>
+        <div class="bloque" id="cap32"><span class="pal" data-t="33.653">y</span><span class="pal" data-t="33.733">adicionalmente</span><span class="pal" data-t="34.599">tiene</span></div>
+        <div class="bloque" id="cap33"><span class="pal" data-t="34.935">un</span><span class="pal" data-t="35.016">nuevo</span><span class="pal" data-t="35.320">botón</span></div>
+        <div class="bloque" id="cap34"><span class="pal" data-t="35.561">el</span><span class="pal" data-t="35.885">cual</span><span class="pal" data-t="36.128">puede</span></div>
+        <div class="bloque" id="cap35"><span class="pal" data-t="36.403">usarse</span><span class="pal" data-t="36.938">para</span><span class="pal" data-t="37.100">llamar</span></div>
+        <div class="bloque" id="cap36"><span class="pal" data-t="37.521">a</span><span class="pal" data-t="37.667">tu</span><span class="pal" data-t="37.699">asistente</span></div>
+        <div class="bloque" id="cap37"><span class="pal" data-t="38.153">de</span><span class="pal" data-t="38.185">inteligencia</span><span class="pal" data-t="38.704">artificial.</span></div>
+        <div class="bloque" id="cap38"><span class="pal" data-t="39.239">actualizado</span><span class="pal" data-t="40.064">en</span><span class="pal" data-t="40.226">el</span></div>
+        <div class="bloque" id="cap39"><span class="pal" data-t="40.856">mundo</span><span class="pal" data-t="41.099">de</span><span class="pal" data-t="41.131">la</span></div>
+        <div class="bloque" id="cap40"><span class="pal" data-t="41.196">inteligencia</span><span class="pal" data-t="41.600">artificial,</span><span class="pal" data-t="42.231">síguenos.</span></div>
 
         <!-- /CAPTIONS -->
       </div>
+      <div id="siguenos" class="clip" data-composition-id="siguenos" data-composition-src="compositions/siguenos.html" data-start="39.3" data-duration="3.9" data-track-index="6"></div>
 
-      <video id="persona" class="clip capa" src="./assets/persona_cuerpo_alfa.webm" data-start="0" data-duration="16.15" data-track-index="4" muted playsinline></video>
-      <audio id="voz" src="./assets/voz_cuerpo.m4a" data-start="0" data-duration="16.15" data-track-index="5"></audio>
+      <video id="persona" class="clip capa" src="./assets/persona_cuerpo_alfa.webm" data-start="0" data-duration="43.2" data-track-index="4" muted playsinline></video>
+      <audio id="voz" src="./assets/voz_cuerpo.m4a" data-start="0" data-duration="43.2" data-track-index="5"></audio>
 
-      <!-- 2) Calendario a pantalla completa sobre el empalme 1 (3.45-4.9): "el día 30 de noviembre" -->
-      <div id="calendario" class="clip" data-start="3.45" data-duration="1.45" data-track-index="6">
-        <div class="hoja">
-          <div class="mes">Noviembre 2026</div>
-          <div class="dias">
-            <div class="cab">L</div><div class="cab">M</div><div class="cab">M</div><div class="cab">J</div><div class="cab">V</div><div class="cab">S</div><div class="cab">D</div>
-            <div></div><div></div><div></div><div></div><div></div><div></div><div>1</div>
-            <div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div>
-            <div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div>
-            <div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div><div>22</div>
-            <div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div><div>29</div>
-            <div class="hoy" id="dia30"><b>30</b></div>
-          </div>
-        </div>
-        <svg class="aro" viewBox="0 0 900 1060"><circle id="aro30" cx="99" cy="973" r="64" fill="none" stroke="#EA4335" stroke-width="9" stroke-linecap="round" transform="rotate(-90 99 973)" stroke-dasharray="403" stroke-dashoffset="403"/></svg>
-        <div class="pie">30 de noviembre</div>
-      </div>
-
-      <!-- SFX (pipeline/visual/sintetizar_sfx.py). La voz manda: volúmenes bajos. -->
+      <!-- SFX: la voz manda -->
       <audio id="sfx-intro" src="./assets/sfx/intro.m4a" data-start="0" data-duration="0.92" data-volume="0.6"></audio>
-      <audio id="sfx-i0" src="./assets/sfx/tick.m4a" data-start="0.30" data-duration="0.08" data-volume="0.22"></audio>
-      <audio id="sfx-i1" src="./assets/sfx/tick.m4a" data-start="0.48" data-duration="0.08" data-volume="0.22"></audio>
-      <audio id="sfx-i2" src="./assets/sfx/tick.m4a" data-start="0.66" data-duration="0.08" data-volume="0.22"></audio>
-      <audio id="sfx-i3" src="./assets/sfx/tick.m4a" data-start="0.84" data-duration="0.08" data-volume="0.22"></audio>
-      <audio id="sfx-i4" src="./assets/sfx/tick.m4a" data-start="1.02" data-duration="0.08" data-volume="0.22"></audio>
-      <audio id="sfx-w1" src="./assets/sfx/whoosh.m4a" data-start="3.40" data-duration="0.47" data-volume="0.3"></audio>
-      <audio id="sfx-p1" src="./assets/sfx/pop.m4a" data-start="3.95" data-duration="0.2" data-volume="0.45"></audio>
-      <audio id="sfx-p2" src="./assets/sfx/pop.m4a" data-start="8.35" data-duration="0.2" data-volume="0.45"></audio>
-      <audio id="sfx-t0" src="./assets/sfx/tick.m4a" data-start="13.95" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t1" src="./assets/sfx/tick.m4a" data-start="14.10" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t2" src="./assets/sfx/tick.m4a" data-start="14.25" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t3" src="./assets/sfx/tick.m4a" data-start="14.40" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t4" src="./assets/sfx/tick.m4a" data-start="14.55" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-t5" src="./assets/sfx/tick.m4a" data-start="14.70" data-duration="0.08" data-volume="0.3"></audio>
-      <audio id="sfx-click" src="./assets/sfx/click.m4a" data-start="15.00" data-duration="0.11" data-volume="0.6"></audio>
-      <audio id="sfx-w2" src="./assets/sfx/whoosh.m4a" data-start="15.05" data-duration="0.47" data-volume="0.3"></audio>
-      <audio id="sfx-p3" src="./assets/sfx/pop.m4a" data-start="15.35" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-w1" src="./assets/sfx/whoosh.m4a" data-start="3.25" data-duration="0.47" data-volume="0.3"></audio>
+      <audio id="sfx-t1" src="./assets/sfx/tick.m4a" data-start="6.86" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t2" src="./assets/sfx/tick.m4a" data-start="7.50" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t3" src="./assets/sfx/tick.m4a" data-start="8.22" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-p1" src="./assets/sfx/pop.m4a" data-start="9.10" data-duration="0.2" data-volume="0.4"></audio>
+      <audio id="sfx-p2" src="./assets/sfx/pop.m4a" data-start="10.61" data-duration="0.2" data-volume="0.4"></audio>
+      <audio id="sfx-p3" src="./assets/sfx/pop.m4a" data-start="13.03" data-duration="0.2" data-volume="0.4"></audio>
+      <audio id="sfx-w2" src="./assets/sfx/whoosh.m4a" data-start="15.95" data-duration="0.47" data-volume="0.3"></audio>
+      <audio id="sfx-p4" src="./assets/sfx/pop.m4a" data-start="22.74" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-w3" src="./assets/sfx/whoosh.m4a" data-start="26.45" data-duration="0.47" data-volume="0.3"></audio>
+      <audio id="sfx-p5" src="./assets/sfx/pop.m4a" data-start="31.31" data-duration="0.2" data-volume="0.4"></audio>
+      <audio id="sfx-p6" src="./assets/sfx/pop.m4a" data-start="32.44" data-duration="0.2" data-volume="0.4"></audio>
+      <audio id="sfx-p7" src="./assets/sfx/pop.m4a" data-start="35.32" data-duration="0.2" data-volume="0.4"></audio>
+      <audio id="sfx-w4" src="./assets/sfx/whoosh.m4a" data-start="39.25" data-duration="0.47" data-volume="0.35"></audio>
+      <audio id="sfx-click" src="./assets/sfx/click.m4a" data-start="40.6" data-duration="0.11" data-volume="0.6"></audio>
 
       <div id="progreso"></div>
-      <img id="logo" class="clip" src="./assets/logo_blanco.png" data-start="0" data-duration="16.15" data-track-index="7" alt="" />
+      <img id="logo" class="clip" src="./assets/logo_blanco.png" data-start="0" data-duration="43.2" data-track-index="7" alt="" />
     </div>
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
       const entra = (sel, t, dur = 0.35) => tl.fromTo(sel, { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: "power3.out" }, t);
-      const barrido = (sel, t) => tl.fromTo(sel, { clipPath: "inset(0 100% 0 0 round 28px)" }, { clipPath: "inset(0 0% 0 0 round 28px)", duration: 0.28, ease: "power3.out" }, t);
+      const barrido = (sel, t, r = "28px") => tl.fromTo(sel, { clipPath: `inset(0 100% 0 0 round ${r})` }, { clipPath: `inset(0 0% 0 0 round ${r})`, duration: 0.28, ease: "power3.out" }, t);
       const kb = (sel, t, dur, origen) => { tl.set(sel, { transformOrigin: origen }, t); tl.fromTo(sel, { scale: 1.0 }, { scale: 1.08, duration: dur, ease: "none" }, t); };
-      // Frame 0 es la miniatura: persona y collage ya visibles, con un leve asentamiento (y el "tin" de bici)
+      const pop = (sel, t) => tl.fromTo(sel, { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.6)" }, t);
+      const item = (sel, t) => tl.fromTo(sel, { opacity: 0, x: -40 }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, t);
+      // Frame 0: todo visible; el título asienta con el tin
       tl.fromTo("#persona", { y: 12 }, { y: 0, duration: 0.3, ease: "power3.out" }, 0);
-      tl.fromTo("#collage", { scale: 1.1 }, { scale: 1, duration: 0.45, ease: "power3.out" }, 0);
-      // 1) íconos: uno cada 180 ms con rebote, al ritmo de los ticks
-      // la primera fila ya está en el frame 0 (miniatura); la segunda entra uno por uno al ritmo de los ticks
-      document.querySelectorAll("#collage .ico").forEach((el, i) => {
-        if (i < 5) { tl.set(el, { opacity: 1 }, 0); return; }
-        tl.fromTo(el, { opacity: 0, scale: 0.2, rotate: -12 }, { opacity: 1, scale: 1, rotate: 0, duration: 0.38, ease: "back.out(2.6)" }, 0.30 + (i - 5) * 0.18);
+      tl.fromTo("#titulo", { scale: 1.12 }, { scale: 1, duration: 0.45, ease: "power3.out" }, 0);
+      tl.fromTo("#titulo .num", { x: -30 }, { x: 0, duration: 0.5, ease: "power3.out" }, 0);
+      // tarjetas de producto: el número cae con rebote
+      [["#p1", 1.75], ["#p2", 16.0], ["#p3", 26.5]].forEach(([s, t]) => {
+        barrido(s, t); tl.fromTo(s + " .num", { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "back.out(2)" }, t + 0.05);
+        tl.fromTo(s + " .tx", { x: 40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, t + 0.15);
       });
-      tl.to("#collage", { y: -40, opacity: 0, duration: 0.25, ease: "power2.in" }, 3.2);
-      // 2) calendario: entra de abajo con el whoosh, el aro se dibuja alrededor del 30 al decir "30" (4.02) con el pop
-      tl.fromTo("#calendario", { clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0% 0 0 0)", duration: 0.32, ease: "power3.out" }, 3.45);
-      tl.fromTo("#calendario .hoja", { y: 60, scale: 0.96 }, { y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 3.45);
-      tl.fromTo("#dia30", { scale: 0.6 }, { scale: 1, duration: 0.35, ease: "back.out(3)" }, 3.95);
-      tl.to("#aro30", { strokeDashoffset: 0, duration: 0.45, ease: "power2.out" }, 3.98);
-      tl.fromTo("#calendario .pie", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 4.1);
-      tl.to("#calendario", { clipPath: "inset(0 0 100% 0)", duration: 0.3, ease: "power2.in" }, 4.6);
-      // 3) ventanas de negocios con barrido y Ken Burns; rótulo "dueños de empresa" al decirlo (7.39)
-      barrido("#v-presenta", 4.9); kb("#v-presenta", 4.9, 3.4, "50% 40%");
-      entra("#r-duenos", 7.2, 0.3);
-      barrido("#v-mesa", 11.9); kb("#v-mesa", 11.9, 1.7, "50% 45%");
-      // 4) insignia Partner: entra con rebote al decir "aliados" (8.83 → la tarjeta ya está desde 8.3) y respira
-      tl.fromTo("#partner", { opacity: 0, scale: 0.85, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, 8.3);
-      tl.fromTo("#partner span", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 8.6);
-      tl.to("#partner", { scale: 1.03, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 8.8);
-      // 5) comentario: la tarjeta entra, el cursor llega al campo, se escribe "Google" (13.95-14.70 con ticks),
-      //    clic en enviar (15.00), la burbuja sube y 6) "Mensaje enviado" (15.35 con pop)
-      tl.fromTo("#comentario", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 13.6);
-      tl.fromTo("#comentario .cursor", { opacity: 0, x: 120, y: 60 }, { opacity: 1, x: 0, y: 0, duration: 0.3, ease: "power2.out" }, 13.65);
-      tl.to("#comentario .cursor", { x: -300, y: -160, duration: 0.25, ease: "power2.inOut" }, 13.7);   // al campo
-      tl.set("#comentario .campo .ph", { display: "none" }, 13.95);
-      const letras = document.querySelectorAll("#comentario .ch");
-      letras.forEach((el, i) => tl.set(el, { display: "inline" }, 13.95 + i * 0.15));
-      for (let t = 13.6; t < 15.0; t += 0.5) { tl.set("#comentario .caret", { opacity: 1 }, t); tl.set("#comentario .caret", { opacity: 0 }, t + 0.25); }
-      tl.to("#comentario .cursor", { x: 320, y: -140, duration: 0.25, ease: "power2.inOut" }, 14.72);  // al botón enviar
-      tl.to("#comentario .enviar", { scale: 0.85, duration: 0.06, ease: "power2.in" }, 15.0);
-      tl.to("#comentario .enviar", { scale: 1, duration: 0.2, ease: "back.out(3)" }, 15.06);
-      tl.to("#comentario .cursor", { opacity: 0, duration: 0.15 }, 15.1);
-      tl.to("#comentario .campo .texto", { opacity: 0, duration: 0.1 }, 15.05);
-      tl.set("#comentario .caret", { opacity: 0 }, 15.05);
-      tl.set("#comentario .ch", { display: "none" }, 15.15); tl.set("#comentario .campo .ph", { display: "inline" }, 15.2); tl.to("#comentario .campo .texto", { opacity: 1, duration: 0.2 }, 15.2);
-      tl.fromTo("#comentario .burbuja", { opacity: 0, y: 120, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out" }, 15.05);
-      tl.fromTo("#comentario .enviado", { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, 15.35);
-      // Punch-in de la persona en cada cambio de plano (5 %, 370 ms); en 11.745 además disimula el empalme 2
-      [4.9, 8.3, 11.745, 13.6].forEach(t => {
+      // Muse + apps
+      barrido("#muse", 3.3); barrido("#v-muse", 3.3, "28px 0 0 28px");
+      pop("#ico-wa", 6.86); pop("#ico-ig", 7.50); pop("#ico-fb", 8.22);
+      // funciones
+      barrido("#v-texting", 8.9); kb("#v-texting", 8.9, 6.85, "50% 50%"); tl.fromTo("#funciones", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 8.9);
+      item("#f1", 9.10); item("#f2", 10.61); item("#f3", 13.03);
+      // visor y 100 g
+      barrido("#visor", 18.2); tl.fromTo("#visor img", { scale: 0.9, x: 40 }, { scale: 1.02, x: 0, duration: 4.4, ease: "power1.out" }, 18.2);
+      barrido("#v-vr", 22.6); kb("#v-vr", 22.6, 3.7, "50% 40%");
+      const o = { v: 0 }; const elPeso = document.querySelector("#peso b");
+      tl.fromTo("#peso", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 22.7);
+      tl.to(o, { v: 100, duration: 0.8, ease: "power2.out", onUpdate: () => { elPeso.textContent = Math.round(o.v) + " g"; } }, 22.7);
+      tl.to("#peso b", { scale: 1.06, duration: 0.08 }, 23.5); tl.to("#peso b", { scale: 1, duration: 0.18, ease: "back.out(2)" }, 23.58);
+      // Ray-Ban
+      barrido("#rayban", 29.0); barrido("#v-rayban", 29.0, "28px 0 0 28px");
+      item("#r1", 31.31); item("#r2", 32.44); item("#r3", 35.32);
+      // Punch-in de la persona en cada cambio de plano (y sobre los empalmes 15.916, 26.293, 39.239)
+      [3.3, 8.9, 15.916, 18.2, 22.6, 26.293, 29.0, 39.239].forEach(t => {
         tl.to("#persona", { scale: 1.05, duration: 0.12, ease: "power2.out" }, t);
         tl.to("#persona", { scale: 1.0, duration: 0.25, ease: "power2.inOut" }, t + 0.12);
       });
-      tl.fromTo("#progreso", { width: 0 }, { width: 1080, duration: 16.15, ease: "none" }, 0);
-      // Empalmes del cuerpo (cortar_video.py --fade 0): bajón de opacidad de 0.1 s de la capa persona. Lo rellena vestir.sh.
-      const EMPALMES = [3.504, 11.745];
+      tl.fromTo("#progreso", { width: 0 }, { width: 1080, duration: 43.2, ease: "none" }, 0);
+      const EMPALMES = [1.568, 3.237, 15.916, 18.051, 26.293, 29.162, 39.239];
       EMPALMES.forEach(t => {
         tl.to("#persona", { opacity: 0, duration: 0.1, ease: "none" }, Math.max(0, t - 0.1));
         tl.to("#persona", { opacity: 1, duration: 0.1, ease: "none" }, t);
@@ -270,25 +254,47 @@
         });
       };
       // CAPTIONS-TL
-      capBloque("#cap0", 0.192, 0.676);
-      capBloque("#cap1", 0.676, 1.338);
-      capBloque("#cap2", 1.338, 2.388);
-      capBloque("#cap3", 2.388, 3.179);
-      capBloque("#cap4", 3.179, 3.637);
-      capBloque("#cap5", 3.637, 4.262);
-      capBloque("#cap6", 4.262, 5.384);
-      capBloque("#cap7", 5.384, 7.147);
-      capBloque("#cap8", 7.147, 7.724);
-      capBloque("#cap9", 7.724, 8.589);
-      capBloque("#cap10", 8.589, 9.487);
-      capBloque("#cap11", 9.487, 10.433);
-      capBloque("#cap12", 10.433, 11.853);
-      capBloque("#cap13", 11.853, 12.430);
-      capBloque("#cap14", 12.430, 13.712);
-      capBloque("#cap15", 13.712, 14.529);
-      capBloque("#cap16", 14.529, 15.058);
-      capBloque("#cap17", 15.058, 16.083);
-
+      capBloque("#cap0", 0.110, 1.016);
+      capBloque("#cap1", 1.016, 1.770);
+      capBloque("#cap2", 1.770, 3.324);
+      capBloque("#cap3", 3.324, 4.078);
+      capBloque("#cap4", 4.078, 5.330);
+      capBloque("#cap5", 5.330, 6.534);
+      capBloque("#cap6", 6.534, 7.256);
+      capBloque("#cap7", 7.256, 8.138);
+      capBloque("#cap8", 8.138, 8.861);
+      capBloque("#cap9", 8.861, 10.385);
+      capBloque("#cap10", 10.385, 11.188);
+      capBloque("#cap11", 11.188, 12.327);
+      capBloque("#cap12", 12.327, 13.033);
+      capBloque("#cap13", 13.033, 13.852);
+      capBloque("#cap14", 13.852, 14.879);
+      capBloque("#cap15", 14.879, 16.109);
+      capBloque("#cap16", 16.109, 17.064);
+      capBloque("#cap17", 17.064, 18.225);
+      capBloque("#cap18", 18.225, 18.808);
+      capBloque("#cap19", 18.808, 20.006);
+      capBloque("#cap20", 20.006, 20.557);
+      capBloque("#cap21", 20.557, 22.095);
+      capBloque("#cap22", 22.095, 23.067);
+      capBloque("#cap23", 23.067, 24.478);
+      capBloque("#cap24", 24.478, 25.094);
+      capBloque("#cap25", 25.094, 26.603);
+      capBloque("#cap26", 26.603, 27.934);
+      capBloque("#cap27", 27.934, 29.325);
+      capBloque("#cap28", 29.325, 30.351);
+      capBloque("#cap29", 30.351, 31.313);
+      capBloque("#cap30", 31.313, 32.435);
+      capBloque("#cap31", 32.435, 33.653);
+      capBloque("#cap32", 33.653, 34.935);
+      capBloque("#cap33", 34.935, 35.561);
+      capBloque("#cap34", 35.561, 36.403);
+      capBloque("#cap35", 36.403, 37.521);
+      capBloque("#cap36", 37.521, 38.153);
+      capBloque("#cap37", 38.153, 39.239);
+      capBloque("#cap38", 39.239, 40.856);
+      capBloque("#cap39", 40.856, 41.196);
+      capBloque("#cap40", 41.196, 43.200);
 
       // /CAPTIONS-TL
       window.__timelines["main"] = tl;

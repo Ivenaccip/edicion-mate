@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="./vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "InterLocal"; src: url("./vendor/Inter-ExtraBold.otf") format("opentype"); font-weight: 400 900; }
+      /* IMG_7924 (evento 30 de noviembre, Google Partner). Cuerpo 16.15 s, empalmes 3.504 y 11.745.
+         Plan del usuario: 1) collage de productos de Google Workspace hasta el primer corte, 2) la fecha con un
+         calendario (a pantalla completa: tapa el empalme 1), 3) b-roll de hombres de negocios (Mixkit 22961 y 4547),
+         4) insignia Google Partner, 5) la palabra "Google" escrita en una caja de comentario, 6) "Mensaje enviado".
+         Plantilla anterior guardada en plantillas/IMG_7889_index.html. Tiempos = tiempo del cuerpo (EDL aplicado). */
+      :root {
+        --crema: #f1ece3; --tinta: #1b1b1f; --azul: #2f8fff; --naranja: #e07b4a; --navy: #0f1b33;
+        --font: "InterLocal", "DejaVu Sans", sans-serif;
+        --g-azul: #4285F4; --g-rojo: #EA4335; --g-amarillo: #FBBC05; --g-verde: #34A853;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--crema); }
+      #root { position: relative; width: 1080px; height: 1920px; font-family: var(--font); }
+      .capa { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+      #fondo { z-index: 0; background: var(--crema); }
+
+      /* Zona de b-roll: tarjeta flotante 16:9 arriba, libre de la persona (la cabeza empieza en y≈760) */
+      .ventana { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; object-fit: cover;
+        box-shadow: 0 30px 80px rgba(0,0,0,.28); background: #000; z-index: 1; }
+      .tarjeta { position: absolute; left: 140px; top: 250px; width: 800px; height: 450px; border-radius: 28px; overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0,0,0,.28); z-index: 1; }
+
+      /* Texto "doble": relleno blanco con contorno negro (paint-order pinta el borde debajo del relleno) */
+      .texto-doble { color: #fff; -webkit-text-stroke: 8px #111; paint-order: stroke fill; text-shadow: 0 6px 18px rgba(0,0,0,.45); }
+      .rotulo { z-index: 2; position: absolute; left: 140px; width: 800px; top: 718px; text-align: center; font-size: 74px; line-height: 1;
+        letter-spacing: -0.02em; text-transform: uppercase; opacity: 0; -webkit-text-stroke-width: 7px; }
+
+      /* 1) Collage Google Workspace (0-3.45 s): tarjeta blanca, marca arriba, 10 íconos en dos filas que van apareciendo */
+      #collage { top: 200px; height: 540px; background: #fff; }
+      #collage .marca { position: absolute; left: 0; right: 0; top: 44px; height: 54px; text-align: center; }
+      #collage .marca img { height: 54px; }
+      #collage .rejilla { position: absolute; left: 48px; right: 48px; top: 140px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 36px 24px; justify-items: center; }
+      #collage .rejilla img { width: 118px; height: 118px; object-fit: contain; opacity: 0; filter: drop-shadow(0 6px 10px rgba(0,0,0,.12)); }
+
+      /* 2) Calendario a pantalla completa (3.45-4.9 s): tapa el empalme 1 */
+      #calendario { z-index: 6; position: absolute; inset: 0; background: var(--navy); }
+      #calendario .hoja { position: absolute; left: 90px; top: 380px; width: 900px; height: 1060px; background: #fff; border-radius: 48px; overflow: hidden;
+        box-shadow: 0 40px 120px rgba(0,0,0,.5); }
+      #calendario .mes { height: 170px; background: var(--g-azul); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 76px; letter-spacing: -0.02em; }
+      #calendario .dias { display: grid; grid-template-columns: repeat(7, 1fr); padding: 36px 40px 0; row-gap: 8px; }
+      #calendario .dias div { height: 118px; display: flex; align-items: center; justify-content: center; font-size: 56px; color: #3c4043; position: relative; }
+      #calendario .dias .cab { height: 70px; font-size: 38px; color: #80868b; }
+      #calendario .dias .hoy { color: var(--g-rojo); z-index: 1; }
+      #calendario .dias .hoy b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #calendario .aro { position: absolute; left: 90px; top: 380px; width: 900px; height: 1060px; pointer-events: none; }
+      #calendario .pie { position: absolute; left: 0; right: 0; top: 1500px; text-align: center; color: #fff; font-size: 92px; letter-spacing: -0.02em; line-height: 1; }
+      #calendario .pie small { display: block; font-size: 44px; color: #9fb3d9; margin-top: 18px; font-family: "DejaVu Sans", sans-serif; }
+
+      /* 4) Insignia Google Partner (8.3-11.75 s) */
+      #partner { background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+      #partner .borde { position: absolute; left: 0; top: 0; bottom: 0; width: 22px; background: linear-gradient(180deg, var(--g-azul) 0 25%, var(--g-rojo) 25% 50%, var(--g-amarillo) 50% 75%, var(--g-verde) 75% 100%); }
+      #partner img { width: 430px; }
+      #partner span { font-family: "DejaVu Sans", sans-serif; font-size: 96px; color: #5f6368; letter-spacing: 0.01em; line-height: 1; }
+
+      /* 5) Caja de comentario (13.6-16.15 s): campo tipo TikTok, el cursor escribe "Google" y envía */
+      #comentario { background: #16161a; }
+      #comentario .campo { position: absolute; left: 44px; right: 44px; top: 150px; height: 150px; border-radius: 75px; background: #2a2a30; display: flex; align-items: center; padding: 0 44px 0 52px; }
+      #comentario .campo .texto { flex: 1; min-width: 0; overflow: hidden; font-size: 58px; color: #fff; white-space: nowrap; letter-spacing: 0.01em; }
+      #comentario .campo .texto .ph { color: #8a8a93; font-family: "DejaVu Sans", sans-serif; font-size: 50px; }
+      #comentario .campo .texto .ch { display: none; }
+      #comentario .campo .caret { width: 5px; height: 66px; background: #fff; margin-left: 4px; border-radius: 3px; }
+      #comentario .enviar { flex: none; width: 104px; height: 104px; border-radius: 50%; background: var(--g-rojo); display: flex; align-items: center; justify-content: center; margin-left: 24px; }
+      #comentario .enviar svg { width: 54px; height: 54px; fill: #fff; }
+      #comentario .cursor { position: absolute; left: 520px; top: 380px; width: 64px; height: 72px; opacity: 0; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+      #comentario .burbuja { position: absolute; left: 52px; top: 34px; padding: 18px 34px; border-radius: 40px; background: #2a2a30; color: #fff; font-size: 44px; opacity: 0; }
+      #comentario .burbuja small { display: block; font-family: "DejaVu Sans", sans-serif; font-size: 26px; color: #8a8a93; margin-bottom: 4px; }
+      #comentario .enviado { position: absolute; left: 44px; right: 44px; top: 330px; height: 92px; border-radius: 46px; background: var(--g-verde); color: #fff;
+        display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 44px; opacity: 0; }
+      #comentario .enviado svg { width: 44px; height: 44px; fill: none; stroke: #fff; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+
+      #persona { z-index: 5; object-fit: cover; filter: saturate(1.3) contrast(1.06) brightness(1.02); }
+      #progreso { z-index: 9; position: absolute; left: 0; top: 0; height: 10px; width: 0; background: var(--naranja); }
+
+      /* Captions (pipeline/visual/captions.py), justo encima del logo de la laptop */
+      #captions { z-index: 6; position: absolute; left: 108px; width: 864px; top: 1360px; }
+      #captions .bloque { position: absolute; left: 0; width: 864px; text-align: center; opacity: 0; font-size: 66px; font-weight: 800;
+        line-height: 1.15; letter-spacing: -0.01em; color: #fff; -webkit-text-stroke: 7px #111; paint-order: stroke fill;
+        text-shadow: 0 6px 18px rgba(0,0,0,.45); }
+      #captions .pal { display: inline-block; padding: 2px 14px; border-radius: 16px; margin: 0 1px; }
+      #captions .pal.on { background: var(--azul); -webkit-text-stroke: 0; text-shadow: none; }
+
+      #logo { z-index: 7; position: absolute; left: 48px; top: 1790px; width: 360px; height: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="16.15" data-width="1080" data-height="1920">
+      <div id="fondo" class="clip capa" data-start="0" data-duration="16.15" data-track-index="0"></div>
+
+      <!-- 1) Collage Google Workspace: "si tu equipo trabaja con el ecosistema de Google" (0-3.45) -->
+      <div id="collage" class="tarjeta clip" data-start="0" data-duration="3.45" data-track-index="1">
+        <div class="marca"><img src="./iconos/google-workspace.svg" alt="" /></div>
+        <div class="rejilla">
+          <img class="ico" src="./iconos/di_gmail.svg" alt="" /><img class="ico" src="./iconos/di_google-drive.svg" alt="" /><img class="ico" src="./iconos/di_google-calendar.svg" alt="" /><img class="ico" src="./iconos/di_google-meet.svg" alt="" /><img class="ico" src="./iconos/di_google-docs.svg" alt="" />
+          <img class="ico" src="./iconos/di_google-sheets.svg" alt="" /><img class="ico" src="./iconos/di_google-slides.svg" alt="" /><img class="ico" src="./iconos/di_google-forms.svg" alt="" /><img class="ico" src="./iconos/di_google-chat.svg" alt="" /><img class="ico" src="./iconos/di_google-keep.svg" alt="" />
+        </div>
+      </div>
+
+      <!-- 3) Hombres de negocios: "capacitación exclusiva para dueños de empresa" (4.9-8.3) -->
+      <video class="ventana clip" id="v-presenta" src="./assets/b5_negocios_presenta_1280.mp4" data-start="4.9" data-duration="3.4" data-track-index="1" muted playsinline></video>
+      <div class="rotulo texto-doble clip" id="r-duenos" data-start="7.2" data-duration="1.1" data-track-index="2">Dueños de empresa</div>
+
+      <!-- 4) Google Partner: "principales aliados comerciales de Google en Latinoamérica" (8.3-11.75) -->
+      <div id="partner" class="tarjeta clip" data-start="8.3" data-duration="3.45" data-track-index="1">
+        <div class="borde"></div>
+        <img src="./iconos/google.svg" alt="" />
+        <span>Partner</span>
+      </div>
+
+      <!-- 3b) Mesa de negocios: "si quieres entrar en esta capacitación" (11.9-13.6) -->
+      <video class="ventana clip" id="v-mesa" src="./assets/b6_negocios_mesa_1280.mp4" data-start="11.9" data-duration="1.7" data-track-index="1" muted playsinline></video>
+
+      <!-- 5 y 6) Comentario "Google" y mensaje enviado (13.6-16.15) -->
+      <div id="comentario" class="tarjeta clip" data-start="13.6" data-duration="2.55" data-track-index="1">
+        <div class="burbuja">Google</div>
+        <div class="campo">
+          <div class="texto"><span class="ph">Agrega un comentario...</span><span class="ch">G</span><span class="ch">o</span><span class="ch">o</span><span class="ch">g</span><span class="ch">l</span><span class="ch">e</span></div>
+          <div class="caret"></div>
+          <div class="enviar"><svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></div>
+        </div>
+        <div class="enviado"><svg viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 7"/></svg>Mensaje enviado</div>
+        <svg class="cursor" viewBox="0 0 32 36"><path d="M2 2l9 30 5-12 12-5z" fill="#fff" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/></svg>
+      </div>
+
+      <div id="captions" class="clip" data-start="0" data-duration="16.15" data-track-index="8">
+        <!-- CAPTIONS -->
+        <div class="bloque" id="cap0"><span class="pal" data-t="0.192">Si</span><span class="pal" data-t="0.353">tu</span><span class="pal" data-t="0.386">equipo</span></div>
+        <div class="bloque" id="cap1"><span class="pal" data-t="0.676">trabaja</span><span class="pal" data-t="1.064">con</span><span class="pal" data-t="1.177">el</span></div>
+        <div class="bloque" id="cap2"><span class="pal" data-t="1.338">ecosistema</span><span class="pal" data-t="1.839">de</span><span class="pal" data-t="1.968">Google,</span></div>
+        <div class="bloque" id="cap3"><span class="pal" data-t="2.388">esta</span><span class="pal" data-t="2.550">información</span><span class="pal" data-t="3.034">es</span></div>
+        <div class="bloque" id="cap4"><span class="pal" data-t="3.179">para</span><span class="pal" data-t="3.341">ti.</span></div>
+        <div class="bloque" id="cap5"><span class="pal" data-t="3.637">El</span><span class="pal" data-t="3.782">día</span><span class="pal" data-t="4.022">30</span></div>
+        <div class="bloque" id="cap6"><span class="pal" data-t="4.262">de</span><span class="pal" data-t="4.343">noviembre</span><span class="pal" data-t="4.903">tendremos</span></div>
+        <div class="bloque" id="cap7"><span class="pal" data-t="5.384">una</span><span class="pal" data-t="5.544">capacitación</span><span class="pal" data-t="6.202">exclusiva</span></div>
+        <div class="bloque" id="cap8"><span class="pal" data-t="7.147">para</span><span class="pal" data-t="7.388">dueños</span><span class="pal" data-t="7.644">de</span></div>
+        <div class="bloque" id="cap9"><span class="pal" data-t="7.724">empresa</span><span class="pal" data-t="8.269">con</span><span class="pal" data-t="8.445">uno</span></div>
+        <div class="bloque" id="cap10"><span class="pal" data-t="8.589">de</span><span class="pal" data-t="8.670">los</span><span class="pal" data-t="8.830">principales</span></div>
+        <div class="bloque" id="cap11"><span class="pal" data-t="9.487">aliados</span><span class="pal" data-t="9.791">comerciales</span><span class="pal" data-t="10.288">de</span></div>
+        <div class="bloque" id="cap12"><span class="pal" data-t="10.433">Google</span><span class="pal" data-t="10.849">en</span><span class="pal" data-t="10.929">Latinoamérica.</span></div>
+        <div class="bloque" id="cap13"><span class="pal" data-t="11.853">Si</span><span class="pal" data-t="11.933">quieres</span><span class="pal" data-t="12.189">entrar</span></div>
+        <div class="bloque" id="cap14"><span class="pal" data-t="12.430">en</span><span class="pal" data-t="12.510">esta</span><span class="pal" data-t="12.654">capacitación,</span></div>
+        <div class="bloque" id="cap15"><span class="pal" data-t="13.712">escribe</span><span class="pal" data-t="14.097">la</span><span class="pal" data-t="14.177">palabra</span></div>
+        <div class="bloque" id="cap16"><span class="pal" data-t="14.529">Google</span><span class="pal" data-t="14.914">y</span><span class="pal" data-t="14.978">te</span></div>
+        <div class="bloque" id="cap17"><span class="pal" data-t="15.058">lo</span><span class="pal" data-t="15.154">haré</span><span class="pal" data-t="15.298">llegar</span></div>
+
+
+        <!-- /CAPTIONS -->
+      </div>
+
+      <video id="persona" class="clip capa" src="./assets/persona_cuerpo_alfa.webm" data-start="0" data-duration="16.15" data-track-index="4" muted playsinline></video>
+      <audio id="voz" src="./assets/voz_cuerpo.m4a" data-start="0" data-duration="16.15" data-track-index="5"></audio>
+
+      <!-- 2) Calendario a pantalla completa sobre el empalme 1 (3.45-4.9): "el día 30 de noviembre" -->
+      <div id="calendario" class="clip" data-start="3.45" data-duration="1.45" data-track-index="6">
+        <div class="hoja">
+          <div class="mes">Noviembre 2026</div>
+          <div class="dias">
+            <div class="cab">L</div><div class="cab">M</div><div class="cab">M</div><div class="cab">J</div><div class="cab">V</div><div class="cab">S</div><div class="cab">D</div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div>1</div>
+            <div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div>
+            <div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div>
+            <div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div><div>22</div>
+            <div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div><div>29</div>
+            <div class="hoy" id="dia30"><b>30</b></div>
+          </div>
+        </div>
+        <svg class="aro" viewBox="0 0 900 1060"><circle id="aro30" cx="99" cy="973" r="64" fill="none" stroke="#EA4335" stroke-width="9" stroke-linecap="round" transform="rotate(-90 99 973)" stroke-dasharray="403" stroke-dashoffset="403"/></svg>
+        <div class="pie">30 de noviembre</div>
+      </div>
+
+      <!-- SFX (pipeline/visual/sintetizar_sfx.py). La voz manda: volúmenes bajos. -->
+      <audio id="sfx-intro" src="./assets/sfx/intro.m4a" data-start="0" data-duration="0.92" data-volume="0.6"></audio>
+      <audio id="sfx-i0" src="./assets/sfx/tick.m4a" data-start="0.30" data-duration="0.08" data-volume="0.22"></audio>
+      <audio id="sfx-i1" src="./assets/sfx/tick.m4a" data-start="0.48" data-duration="0.08" data-volume="0.22"></audio>
+      <audio id="sfx-i2" src="./assets/sfx/tick.m4a" data-start="0.66" data-duration="0.08" data-volume="0.22"></audio>
+      <audio id="sfx-i3" src="./assets/sfx/tick.m4a" data-start="0.84" data-duration="0.08" data-volume="0.22"></audio>
+      <audio id="sfx-i4" src="./assets/sfx/tick.m4a" data-start="1.02" data-duration="0.08" data-volume="0.22"></audio>
+      <audio id="sfx-w1" src="./assets/sfx/whoosh.m4a" data-start="3.40" data-duration="0.47" data-volume="0.3"></audio>
+      <audio id="sfx-p1" src="./assets/sfx/pop.m4a" data-start="3.95" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-p2" src="./assets/sfx/pop.m4a" data-start="8.35" data-duration="0.2" data-volume="0.45"></audio>
+      <audio id="sfx-t0" src="./assets/sfx/tick.m4a" data-start="13.95" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t1" src="./assets/sfx/tick.m4a" data-start="14.10" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t2" src="./assets/sfx/tick.m4a" data-start="14.25" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t3" src="./assets/sfx/tick.m4a" data-start="14.40" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t4" src="./assets/sfx/tick.m4a" data-start="14.55" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-t5" src="./assets/sfx/tick.m4a" data-start="14.70" data-duration="0.08" data-volume="0.3"></audio>
+      <audio id="sfx-click" src="./assets/sfx/click.m4a" data-start="15.00" data-duration="0.11" data-volume="0.6"></audio>
+      <audio id="sfx-w2" src="./assets/sfx/whoosh.m4a" data-start="15.05" data-duration="0.47" data-volume="0.3"></audio>
+      <audio id="sfx-p3" src="./assets/sfx/pop.m4a" data-start="15.35" data-duration="0.2" data-volume="0.45"></audio>
+
+      <div id="progreso"></div>
+      <img id="logo" class="clip" src="./assets/logo_blanco.png" data-start="0" data-duration="16.15" data-track-index="7" alt="" />
+    </div>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const entra = (sel, t, dur = 0.35) => tl.fromTo(sel, { opacity: 0, y: 40, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: "power3.out" }, t);
+      const barrido = (sel, t) => tl.fromTo(sel, { clipPath: "inset(0 100% 0 0 round 28px)" }, { clipPath: "inset(0 0% 0 0 round 28px)", duration: 0.28, ease: "power3.out" }, t);
+      const kb = (sel, t, dur, origen) => { tl.set(sel, { transformOrigin: origen }, t); tl.fromTo(sel, { scale: 1.0 }, { scale: 1.08, duration: dur, ease: "none" }, t); };
+      // Frame 0 es la miniatura: persona y collage ya visibles, con un leve asentamiento (y el "tin" de bici)
+      tl.fromTo("#persona", { y: 12 }, { y: 0, duration: 0.3, ease: "power3.out" }, 0);
+      tl.fromTo("#collage", { scale: 1.1 }, { scale: 1, duration: 0.45, ease: "power3.out" }, 0);
+      // 1) íconos: uno cada 180 ms con rebote, al ritmo de los ticks
+      // la primera fila ya está en el frame 0 (miniatura); la segunda entra uno por uno al ritmo de los ticks
+      document.querySelectorAll("#collage .ico").forEach((el, i) => {
+        if (i < 5) { tl.set(el, { opacity: 1 }, 0); return; }
+        tl.fromTo(el, { opacity: 0, scale: 0.2, rotate: -12 }, { opacity: 1, scale: 1, rotate: 0, duration: 0.38, ease: "back.out(2.6)" }, 0.30 + (i - 5) * 0.18);
+      });
+      tl.to("#collage", { y: -40, opacity: 0, duration: 0.25, ease: "power2.in" }, 3.2);
+      // 2) calendario: entra de abajo con el whoosh, el aro se dibuja alrededor del 30 al decir "30" (4.02) con el pop
+      tl.fromTo("#calendario", { clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0% 0 0 0)", duration: 0.32, ease: "power3.out" }, 3.45);
+      tl.fromTo("#calendario .hoja", { y: 60, scale: 0.96 }, { y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 3.45);
+      tl.fromTo("#dia30", { scale: 0.6 }, { scale: 1, duration: 0.35, ease: "back.out(3)" }, 3.95);
+      tl.to("#aro30", { strokeDashoffset: 0, duration: 0.45, ease: "power2.out" }, 3.98);
+      tl.fromTo("#calendario .pie", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 4.1);
+      tl.to("#calendario", { clipPath: "inset(0 0 100% 0)", duration: 0.3, ease: "power2.in" }, 4.6);
+      // 3) ventanas de negocios con barrido y Ken Burns; rótulo "dueños de empresa" al decirlo (7.39)
+      barrido("#v-presenta", 4.9); kb("#v-presenta", 4.9, 3.4, "50% 40%");
+      entra("#r-duenos", 7.2, 0.3);
+      barrido("#v-mesa", 11.9); kb("#v-mesa", 11.9, 1.7, "50% 45%");
+      // 4) insignia Partner: entra con rebote al decir "aliados" (8.83 → la tarjeta ya está desde 8.3) y respira
+      tl.fromTo("#partner", { opacity: 0, scale: 0.85, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: "back.out(2)" }, 8.3);
+      tl.fromTo("#partner span", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.35, ease: "power3.out" }, 8.6);
+      tl.to("#partner", { scale: 1.03, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 8.8);
+      // 5) comentario: la tarjeta entra, el cursor llega al campo, se escribe "Google" (13.95-14.70 con ticks),
+      //    clic en enviar (15.00), la burbuja sube y 6) "Mensaje enviado" (15.35 con pop)
+      tl.fromTo("#comentario", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 13.6);
+      tl.fromTo("#comentario .cursor", { opacity: 0, x: 120, y: 60 }, { opacity: 1, x: 0, y: 0, duration: 0.3, ease: "power2.out" }, 13.65);
+      tl.to("#comentario .cursor", { x: -300, y: -160, duration: 0.25, ease: "power2.inOut" }, 13.7);   // al campo
+      tl.set("#comentario .campo .ph", { display: "none" }, 13.95);
+      const letras = document.querySelectorAll("#comentario .ch");
+      letras.forEach((el, i) => tl.set(el, { display: "inline" }, 13.95 + i * 0.15));
+      for (let t = 13.6; t < 15.0; t += 0.5) { tl.set("#comentario .caret", { opacity: 1 }, t); tl.set("#comentario .caret", { opacity: 0 }, t + 0.25); }
+      tl.to("#comentario .cursor", { x: 320, y: -140, duration: 0.25, ease: "power2.inOut" }, 14.72);  // al botón enviar
+      tl.to("#comentario .enviar", { scale: 0.85, duration: 0.06, ease: "power2.in" }, 15.0);
+      tl.to("#comentario .enviar", { scale: 1, duration: 0.2, ease: "back.out(3)" }, 15.06);
+      tl.to("#comentario .cursor", { opacity: 0, duration: 0.15 }, 15.1);
+      tl.to("#comentario .campo .texto", { opacity: 0, duration: 0.1 }, 15.05);
+      tl.set("#comentario .caret", { opacity: 0 }, 15.05);
+      tl.set("#comentario .ch", { display: "none" }, 15.15); tl.set("#comentario .campo .ph", { display: "inline" }, 15.2); tl.to("#comentario .campo .texto", { opacity: 1, duration: 0.2 }, 15.2);
+      tl.fromTo("#comentario .burbuja", { opacity: 0, y: 120, scale: 0.8 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: "power3.out" }, 15.05);
+      tl.fromTo("#comentario .enviado", { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(2)" }, 15.35);
+      // Punch-in de la persona en cada cambio de plano (5 %, 370 ms); en 11.745 además disimula el empalme 2
+      [4.9, 8.3, 11.745, 13.6].forEach(t => {
+        tl.to("#persona", { scale: 1.05, duration: 0.12, ease: "power2.out" }, t);
+        tl.to("#persona", { scale: 1.0, duration: 0.25, ease: "power2.inOut" }, t + 0.12);
+      });
+      tl.fromTo("#progreso", { width: 0 }, { width: 1080, duration: 16.15, ease: "none" }, 0);
+      // Empalmes del cuerpo (cortar_video.py --fade 0): bajón de opacidad de 0.1 s de la capa persona. Lo rellena vestir.sh.
+      const EMPALMES = [3.504, 11.745];
+      EMPALMES.forEach(t => {
+        tl.to("#persona", { opacity: 0, duration: 0.1, ease: "none" }, Math.max(0, t - 0.1));
+        tl.to("#persona", { opacity: 1, duration: 0.1, ease: "none" }, t);
+      });
+      const capBloque = (sel, t0, t1) => {
+        const b = document.querySelector(sel); if (!b) return;
+        const spans = Array.from(b.querySelectorAll(".pal"));
+        tl.fromTo(b, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.12, ease: "back.out(2)" }, t0);
+        tl.set(b, { opacity: 0 }, t1);
+        spans.forEach((s, j) => {
+          tl.set(s, { className: "pal on" }, parseFloat(s.dataset.t));
+          if (j + 1 < spans.length) tl.set(s, { className: "pal" }, parseFloat(spans[j + 1].dataset.t));
+        });
+      };
+      // CAPTIONS-TL
+      capBloque("#cap0", 0.192, 0.676);
+      capBloque("#cap1", 0.676, 1.338);
+      capBloque("#cap2", 1.338, 2.388);
+      capBloque("#cap3", 2.388, 3.179);
+      capBloque("#cap4", 3.179, 3.637);
+      capBloque("#cap5", 3.637, 4.262);
+      capBloque("#cap6", 4.262, 5.384);
+      capBloque("#cap7", 5.384, 7.147);
+      capBloque("#cap8", 7.147, 7.724);
+      capBloque("#cap9", 7.724, 8.589);
+      capBloque("#cap10", 8.589, 9.487);
+      capBloque("#cap11", 9.487, 10.433);
+      capBloque("#cap12", 10.433, 11.853);
+      capBloque("#cap13", 11.853, 12.430);
+      capBloque("#cap14", 12.430, 13.712);
+      capBloque("#cap15", 13.712, 14.529);
+      capBloque("#cap16", 14.529, 15.058);
+      capBloque("#cap17", 15.058, 16.083);
+
+
+      // /CAPTIONS-TL
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

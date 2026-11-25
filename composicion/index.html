@@ -57,7 +57,8 @@
       /* Visor: foto de producto sobre blanco, y contador 100 g sobre el clip VR */
       #visor { background: #fff; display: flex; align-items: center; justify-content: center; }
       #visor img { width: 760px; }
-      .rotulo { z-index: 2; position: absolute; left: 140px; width: 800px; top: 330px; text-align: left; padding-left: 40px; opacity: 0; }
+      /* Contador sobre el clip VR: la persona del clip está a la izquierda, el texto va a la derecha para no taparla */
+      .rotulo { z-index: 2; position: absolute; left: 140px; width: 800px; top: 330px; text-align: right; padding-right: 40px; opacity: 0; }
       .rotulo b { display: block; font-size: 190px; line-height: 1; letter-spacing: -0.04em; }
       .rotulo span { display: block; font-size: 58px; font-weight: 800; margin-top: 10px; -webkit-text-stroke-width: 5px; }
 
@@ -171,6 +172,7 @@
         <div class="bloque" id="cap39"><span class="pal" data-t="40.856">mundo</span><span class="pal" data-t="41.099">de</span><span class="pal" data-t="41.131">la</span></div>
         <div class="bloque" id="cap40"><span class="pal" data-t="41.196">inteligencia</span><span class="pal" data-t="41.600">artificial,</span><span class="pal" data-t="42.231">síguenos.</span></div>
 
+
         <!-- /CAPTIONS -->
       </div>
       <div id="siguenos" class="clip" data-composition-id="siguenos" data-composition-src="compositions/siguenos.html" data-start="39.3" data-duration="3.9" data-track-index="6"></div>
@@ -224,7 +226,7 @@
       item("#f1", 9.10); item("#f2", 10.61); item("#f3", 13.03);
       // visor y 100 g
       barrido("#visor", 18.2); tl.fromTo("#visor img", { scale: 0.9, x: 40 }, { scale: 1.02, x: 0, duration: 4.4, ease: "power1.out" }, 18.2);
-      barrido("#v-vr", 22.6); kb("#v-vr", 22.6, 3.7, "50% 40%");
+      barrido("#v-vr", 22.6); kb("#v-vr", 22.6, 3.7, "20% 45%");
       const o = { v: 0 }; const elPeso = document.querySelector("#peso b");
       tl.fromTo("#peso", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 22.7);
       tl.to(o, { v: 100, duration: 0.8, ease: "power2.out", onUpdate: () => { elPeso.textContent = Math.round(o.v) + " g"; } }, 22.7);
@@ -295,6 +297,7 @@
       capBloque("#cap38", 39.239, 40.856);
       capBloque("#cap39", 40.856, 41.196);
       capBloque("#cap40", 41.196, 43.200);
+
 
       // /CAPTIONS-TL
       window.__timelines["main"] = tl;

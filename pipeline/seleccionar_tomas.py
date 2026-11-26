@@ -146,16 +146,25 @@ def main():
     dur = len(x) / sr
     md = []; tomas = dividir_tomas(pal)
     if a.guion:
-        # modo guion: cada frase del guion se empareja con la toma más parecida (texto normalizado)
+        # modo guion: cada frase del guion se empareja con la ventana de palabras más parecida (texto normalizado),
+        # buscando en todo el raw ventanas de 0.7 a 1.3 veces el largo de la frase. Así no depende de cómo quedaron
+        # divididas las tomas (IMG_7903: "está. Este, Musk está Musk está construyendo..." venía fundido con la frase
+        # siguiente). Empate: la ventana más tardía (la toma que se dio por buena). Las ventanas usadas no se repiten.
         frases = [l.strip() for l in open(a.guion, encoding="utf-8") if l.strip()]
-        txt = lambda t: " ".join(norm(p["w"]) for p in pal[t[0]:t[1]])
-        lineas, apartes, usadas = [], [], set()
+        toks = [norm(p["w"]) for p in pal]; usadas = []
+        lineas, apartes = [], []
         for f in frases:
-            nf = " ".join(norm(w) for w in f.split())
-            cand = [(difflib.SequenceMatcher(None, nf, txt(t)).ratio(), i) for i, t in enumerate(tomas) if i not in usadas]
-            r, i = max(cand, key=lambda c: (round(c[0], 2), c[1]))
-            if r < 0.6: raise SystemExit(f"guion: ninguna toma se parece a '{f}' (mejor {r:.2f}: '{' '.join(p['w'] for p in pal[tomas[i][0]:tomas[i][1]])}')")
-            usadas.add(i); lineas.append([tomas[i]]); md.append(f"- guion: '{f}' -> toma {tomas[i][0]}-{tomas[i][1]} (parecido {r:.2f})")
+            nf = " ".join(norm(w) for w in f.split()); nw = len(nf.split())
+            mejor = (0.0, None)
+            for n in range(max(1, int(nw * 0.7)), int(nw * 1.3) + 2):
+                for i in range(0, len(toks) - n + 1):
+                    if any(not (i + n <= u0 or i >= u1) for u0, u1 in usadas): continue
+                    r = difflib.SequenceMatcher(None, nf, " ".join(toks[i:i + n])).ratio()
+                    if (round(r, 2), i) > (round(mejor[0], 2), mejor[1][0] if mejor[1] else -1): mejor = (r, (i, i + n))
+            r, t = mejor
+            if t is None or r < 0.6:
+                raise SystemExit(f"guion: ninguna ventana se parece a '{f}' (mejor {r:.2f})")
+            usadas.append(t); lineas.append([t]); md.append(f"- guion: '{f}' -> palabras {t[0]}-{t[1]} ({pal[t[0]]['ini']:.2f}-{pal[t[1]-1]['fin']:.2f} s, parecido {r:.2f})")
     else:
         lineas, apartes = agrupar(pal, tomas)
     forzadas = {int(f.split(":")[0]): int(f.split(":")[1]) for f in a.forzar_toma}

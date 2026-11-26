@@ -1,0 +1,122 @@
+{
+ "entrada": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/IMG_7903/raw_audio.wav",
+ "salida": "/tmp/claude-0/-home-user-edicion-mate/c5c19149-2773-5c1e-b91b-8fb60eeebda3/scratchpad/IMG_7903/raw.wav",
+ "sr": 48000,
+ "nivel_voz_dbfs": -24.3,
+ "duracion_original_s": 132.587,
+ "duracion_editada_s": 124.162,
+ "quitado_s": 8.23,
+ "pausas_encontradas": 33,
+ "pausas_acortadas": 13,
+ "reglas": {
+  "UMBRAL_DB": -35,
+  "MIN_PAUSA": 120,
+  "PAUSA_MAX": 450,
+  "PAUSA_OBJETIVO": 250,
+  "CROSSFADE": 15
+ },
+ "edl": [
+  {
+   "quitar": [
+    0.0,
+    8.313
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    15.701,
+    15.834
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    20.972,
+    21.442
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    28.788,
+    29.129
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    35.337,
+    35.612
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    39.669,
+    39.729
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    43.155,
+    122.684
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    128.257,
+    128.466
+   ],
+   "accion": "quitar retoma/aparte (por transcript)"
+  },
+  {
+   "quitar": [
+    129.862,
+    133.587
+   ],
+   "accion": "quitar cola (por transcript)"
+  }
+ ],
+ "tramos_elegidos": [
+  [
+   8.313,
+   11.703
+  ],
+  [
+   11.651,
+   15.701
+  ],
+  [
+   15.834,
+   20.972
+  ],
+  [
+   21.442,
+   28.788
+  ],
+  [
+   29.129,
+   35.337
+  ],
+  [
+   35.612,
+   39.669
+  ],
+  [
+   39.729,
+   43.155
+  ],
+  [
+   122.684,
+   128.257
+  ],
+  [
+   128.466,
+   129.862
+  ]
+ ],
+ "nota": "EDL combinado por seleccionar_tomas.py: mejor toma por línea (transcript) + pausas acortadas dentro de las tomas (señal)"
+}

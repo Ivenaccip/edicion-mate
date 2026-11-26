@@ -54,7 +54,7 @@ def main():
     alfa = leer_frames(["ffmpeg", "-v", "error", "-c:v", "libvpx-vp9", "-i", a.webm, "-vf", f"alphaextract,scale={W}:{H},format=gray", "-f", "rawvideo", "-"], W, H, 1)[..., 0]
     n = alfa.shape[0]
     if n < 2: sys.exit("el WebM no trae alfa o tiene menos de 2 frames")
-    vis = alfa > 0
+    vis = alfa > 128   # visible = alfa por encima de la mitad: el plumado del borde (alfa 1-40) oscila por la cuantización VP9 y no es parpadeo de llave
     conmuta = (vis[1:] != vis[:-1]).mean(axis=0)            # tasa de conmutación por píxel
     media = vis.mean(axis=0)
     gh, gw = H // C, W // C
@@ -74,6 +74,11 @@ def main():
     frac_verde = verdoso.mean(axis=0)                        # fracción de muestras en que el píxel es verdoso
     verde_est = estatico & (frac_verde >= 0.8)               # fondo verde que no cambia: aquí el parpadeo es ruido de llave
     solido_est = estatico & (frac_verde < 0.8)               # persona/escritorio estáticos (incl. bordes teñidos de verde): aquí el parpadeo son agujeros
+    # a menos de 3 px de un borde que se mueve o de verde, el plumado (erosión 1 px + gblur 1.1) cruza el 50 % de alfa
+    # cuando el borde se corre 1 px: eso no es agujero, es el borde. Se excluye esa franja (IMG_7903, 24 nov).
+    from scipy.ndimage import binary_dilation
+    franja = binary_dilation(~estatico | (frac_verde > 0.05), iterations=3)
+    solido_est &= ~franja
     def por_celda(m): return m[: gh * C, : gw * C].reshape(gh, C, gw, C).mean(axis=(1, 3))
     conm_verde = por_celda(np.where(verde_est, conmuta, 0)) / np.maximum(por_celda(verde_est), 1e-6)
     conm_solido = por_celda(np.where(solido_est, conmuta, 0)) / np.maximum(por_celda(solido_est), 1e-6)

@@ -50,8 +50,10 @@ def main():
     if a.encuadre == "9:16": prep.append("crop=iw:iw*16/9")
     prep.append(f"scale={W}:{H}")
 
-    # 1) alfa del WebM, todos los frames
-    alfa = leer_frames(["ffmpeg", "-v", "error", "-c:v", "libvpx-vp9", "-i", a.webm, "-vf", f"alphaextract,scale={W}:{H},format=gray", "-f", "rawvideo", "-"], W, H, 1)[..., 0]
+    # 1) alfa del WebM en la ventana auditada
+    # misma ventana que el raw: antes se leía el alfa de todo el video y el movimiento solo de la ventana, y una pierna
+    # que se movía en otro momento aparecía como "agujero" en una celda estática (IMG_7903)
+    alfa = leer_frames(["ffmpeg", "-v", "error", "-c:v", "libvpx-vp9", "-ss", str(a.inicio_s), "-t", str(a.dur_s), "-i", a.webm, "-vf", f"alphaextract,scale={W}:{H},format=gray", "-f", "rawvideo", "-"], W, H, 1)[..., 0]
     n = alfa.shape[0]
     if n < 2: sys.exit("el WebM no trae alfa o tiene menos de 2 frames")
     vis = alfa > 128   # visible = alfa por encima de la mitad: el plumado del borde (alfa 1-40) oscila por la cuantización VP9 y no es parpadeo de llave

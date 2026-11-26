@@ -47,20 +47,6 @@
   {
    "quitar": [
     35.337,
-    35.612
-   ],
-   "accion": "quitar retoma/aparte (por transcript)"
-  },
-  {
-   "quitar": [
-    39.669,
-    39.729
-   ],
-   "accion": "quitar retoma/aparte (por transcript)"
-  },
-  {
-   "quitar": [
-    43.155,
     122.684
    ],
    "accion": "quitar retoma/aparte (por transcript)"
@@ -100,14 +86,6 @@
   [
    29.129,
    35.337
-  ],
-  [
-   35.612,
-   39.669
-  ],
-  [
-   39.729,
-   43.155
   ],
   [
    122.684,
